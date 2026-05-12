@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700;1,800&amp;family=Lexend:wght@300;400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-background": "#e0e3e5",
+                    "surface": "#101415",
+                    "primary-fixed-dim": "#b1c6f9",
+                    "secondary-container": "#00eefc",
+                    "tertiary-container": "#00230d",
+                    "tertiary-fixed-dim": "#00e476",
+                    "on-primary-fixed": "#001a42",
+                    "surface-container-highest": "#323537",
+                    "surface-tint": "#b1c6f9",
+                    "on-primary": "#192f59",
+                    "secondary-fixed": "#7df4ff",
+                    "primary": "#b1c6f9",
+                    "surface-container": "#1d2022",
+                    "inverse-primary": "#495e8a",
+                    "on-surface-variant": "#c5c6d0",
+                    "on-surface": "#e0e3e5",
+                    "error": "#ffb4ab",
+                    "tertiary-fixed": "#61ff97",
+                    "surface-dim": "#101415",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "error-container": "#93000a",
+                    "on-tertiary-container": "#00994d",
+                    "on-tertiary-fixed": "#00210c",
+                    "on-secondary-fixed": "#002022",
+                    "surface-container-lowest": "#0b0f10",
+                    "inverse-on-surface": "#2d3133",
+                    "on-primary-container": "#7084b3",
+                    "surface-variant": "#323537",
+                    "outline-variant": "#44474f",
+                    "surface-container-high": "#272a2c",
+                    "secondary-fixed-dim": "#00dbe9",
+                    "on-secondary": "#00363a",
+                    "on-tertiary-fixed-variant": "#005227",
+                    "background": "#101415",
+                    "outline": "#8e9099",
+                    "on-error": "#690005",
+                    "on-error-container": "#ffdad6",
+                    "secondary": "#d3fbff",
+                    "primary-container": "#001b44",
+                    "tertiary": "#00e476",
+                    "on-tertiary": "#003919",
+                    "surface-container-low": "#191c1e",
+                    "on-primary-fixed-variant": "#314671",
+                    "surface-bright": "#363a3b",
+                    "inverse-surface": "#e0e3e5",
+                    "primary-fixed": "#d8e2ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "sm": "12px",
+                    "xs": "4px",
+                    "md": "24px",
+                    "lg": "48px",
+                    "base": "8px",
+                    "xl": "80px",
+                    "margin": "clamp(16px, 5vw, 64px)"
+            },
+            "fontFamily": {
+                    "display-lg": ["Anybody"],
+                    "body-lg": ["Lexend"],
+                    "title-lg": ["Anybody"],
+                    "headline-md": ["Anybody"],
+                    "headline-xl": ["Anybody"],
+                    "body-md": ["Lexend"],
+                    "label-caps": ["Anybody"]
+            },
+            "fontSize": {
+                    "display-lg": ["72px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "title-lg": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "headline-md": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-xl": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .unity-bg {
+        background-color: #101415;
+        background-image: 
+          radial-gradient(circle at 0% 0%, rgba(0, 228, 118, 0.08) 0%, transparent 40%),
+          radial-gradient(circle at 100% 100%, rgba(177, 198, 249, 0.08) 0%, transparent 40%);
+        position: relative;
+      }
+      .unity-bg::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM34 4V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 4V0H4v4H0v2h4v4h2V6h4V4h-4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 0;
+      }
+      .glass-card {
+        background: rgba(29, 32, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(224, 227, 229, 0.1);
+      }
+      .main-height {
+        min-height: calc(100vh - 80px);
+      }
+      .trophy-glow {
+        filter: drop-shadow(0 0 10px rgba(0, 228, 118, 0.4));
+      }
+      .brand-gradient {
+        background: linear-gradient(135deg, #b1c6f9 0%, #00e476 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-x-hidden unity-bg"><div class="fixed inset-0 overflow-hidden pointer-events-none z-0 flex items-center justify-center opacity-[0.05]">
+<img alt="FIFA World Cup 2026 Logo" class="w-[120%] max-w-none grayscale brightness-200 rotate-12 select-none" src="https://placeholder.pics/svg/300"/>
+</div>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-white/5">
+<div class="flex items-center justify-between px-margin py-4 max-w-[1440px] mx-auto relative z-10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-3xl trophy-glow" style="font-variation-settings: 'FILL' 1;">trophy</span>
+<span class="font-display-lg text-2xl tracking-tighter brand-gradient uppercase">WC26 PREDICT</span>
+</div>
+<nav class="hidden md:flex gap-8">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-label-caps text-label-caps" href="#">INICIO</a>
+<a class="text-on-surface-variant font-medium hover:text-tertiary transition-colors duration-300 font-label-caps text-label-caps" href="#ranking">RANKING</a>
+<a class="text-on-surface-variant font-medium hover:text-tertiary transition-colors duration-300 font-label-caps text-label-caps" href="#">REGLAS</a>
+</nav>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-lg font-label-caps text-label-caps active:scale-95 transition-all hover:shadow-[0_0_20px_rgba(177,198,249,0.3)]">
+            LOGIN
+        </button>
+</div>
+</header>
+<main class="pt-20 relative z-10">
+<div class="max-w-[1440px] mx-auto px-margin main-height flex flex-col lg:flex-row gap-lg py-12">
+<!-- Left Section: Hero + Ranking -->
+<div class="flex-1 flex flex-col min-h-0">
+<!-- Integrated Hero -->
+<div class="mb-xl">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tertiary/10 border border-tertiary/20 text-tertiary font-label-caps text-[10px] mb-4">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
+</span>
+                    PRE-REGISTRO ABIERTO
+                </div>
+<h1 class="font-display-lg text-5xl lg:text-7xl uppercase mb-6 leading-tight">
+                    Domina el <br/>
+<span class="brand-gradient">Mundial 2026</span>
+</h1>
+<p class="font-body-lg text-on-surface-variant max-w-xl">
+                    Demuestra tu conocimiento futbolístico y gana premios exclusivos prediciendo el evento deportivo más grande del planeta.
+                </p>
+</div>
+<!-- Ranking Global Section -->
+<div class="flex flex-col flex-1 min-h-0">
+<div class="flex items-center justify-between gap-4 mb-6">
+<h2 class="font-headline-xl text-3xl uppercase tracking-tight">Ranking Global</h2>
+<div class="flex gap-2">
+<div class="px-3 py-1 glass-card rounded text-[10px] font-label-caps uppercase tracking-widest text-outline">Día 12</div>
+<div class="px-3 py-1 glass-card rounded text-[10px] font-label-caps uppercase tracking-widest text-primary border-primary/30">Temp. 1</div>
+</div>
+</div>
+<!-- Top 3 Bento -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-md mb-md">
+<!-- 2nd Place -->
+<div class="glass-card p-6 rounded-xl flex flex-col items-center text-center order-2 sm:order-1 self-end group transition-transform hover:-translate-y-1">
+<div class="relative mb-3">
+<img alt="Carlos Ruiz profile" class="w-14 h-14 rounded-full border-2 border-outline-variant p-0.5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT1rKL4xMDZjEWz9_ysoqEqwNEwr_ezdhujPcfkPJBlJTUqw9aqNbDStMqz5HjjfnJK6w1hAX4YMB_utw4tuIchudUiUW5rY8DmxfssUqTR8jOQX1ZxGXisQ63OqVu4wEbbHd9fLelM3Q4WFTzaj6rG27mPTPrdOnah9PNPx6H4tOGHvDxKyV8MLrVPrjkdzyVODE8AyvNNNaEqAwAD04kS2drA6L-qC0TNzvbKw-YJHqv_H9ZWf_K6BhEGNNV1ZgYkHmekj2h9BJl"/>
+<div class="absolute -bottom-1 -right-1 w-6 h-6 bg-outline-variant text-surface rounded-full flex items-center justify-center text-xs font-black">2</div>
+</div>
+<h3 class="text-base font-title-lg truncate w-full">Carlos Ruiz</h3>
+<div class="text-primary font-bold text-sm tracking-tight">12,450 PTS</div>
+</div>
+<!-- 1st Place -->
+<div class="glass-card p-8 rounded-xl flex flex-col items-center text-center order-1 sm:order-2 bg-primary/5 border-primary/30 relative overflow-hidden transition-transform hover:-translate-y-2">
+<div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-tertiary to-primary"></div>
+<div class="relative mb-4">
+<img alt="Sofia Mendez profile" class="w-20 h-20 rounded-full border-2 border-primary p-1 relative z-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgKOX5SHgv8yA2wRO2EZ6KNlWfmxy1WldlQKtk6O_9uEg8E9rkcaWDmOec4lQg1HvOHnKMT8jP6RgftSKLj5stZFZUp-lffR4dedliY_7Wgo7DA7XWayIvn3tvnxxfNQiWXbw3-1WCtK1IotsPRbME09Vx7-PnyLf4ujcp7zPmhrTtQ4MS9-x-OOAbqh1v5xOof6hOZnZ54MOKInTK1Po1HhXTZHUpMLjV92ieoTsea7Mdds1fak3-oSbQYTw802C7vstVMkkGMXJ6"/>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-lg z-20">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+</div>
+</div>
+<h3 class="text-lg font-title-lg truncate w-full mb-1">Sofia Mendez</h3>
+<div class="text-primary font-bold text-xl tracking-tighter">14,820 PTS</div>
+</div>
+<!-- 3rd Place -->
+<div class="glass-card p-6 rounded-xl flex flex-col items-center text-center order-3 self-end transition-transform hover:-translate-y-1">
+<div class="relative mb-3">
+<img alt="Marco Polo profile" class="w-14 h-14 rounded-full border-2 border-on-tertiary-fixed-variant p-0.5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUDeLzyBsp2N36wo3LE5JqGv6Pee1v979O8hhoX1nrCwY24XtxfNKe_FlLrjQnOmHXRVH3Xd7J3EdFQMO_c9cFWobfsusbaQi9kEmpmzOvpHmzaV2tQeBvfq0_Tm9miw4O-iBRff5tIVe5tqV8k51WwtDAg9LP2UFZb_7YhpxjmJ1h6-lAxmS0SzC8TAWgcT6ybVqsX44ECNLNtWeuxKwlXiEAtkpYtFixiO4q9aUeJ2YFtecgfzRzXW1q_7ysWO9hzTdr0s_1QK19"/>
+<div class="absolute -bottom-1 -right-1 w-6 h-6 bg-on-tertiary-fixed-variant text-surface rounded-full flex items-center justify-center text-xs font-black">3</div>
+</div>
+<h3 class="text-base font-title-lg truncate w-full">Marco Polo</h3>
+<div class="text-primary font-bold text-sm tracking-tight">11,900 PTS</div>
+</div>
+</div>
+<!-- Table -->
+<div class="glass-card rounded-xl overflow-hidden flex-1">
+<table class="w-full text-left border-collapse">
+<tbody class="divide-y divide-white/5">
+<tr class="hover:bg-white/5 transition-colors">
+<td class="p-4 font-headline-md text-on-surface-variant text-xl">04</td>
+<td class="p-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-white/10 overflow-hidden shrink-0">
+<img alt="David G. avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARA9cGcpdtmQkGwSA37Zow8yI2SPhvcAS75T5oWwlzaDYUO3Ra_qj8G7SbFnHhpOwyt8uXhaO3r5IlqDsBlYDbI609sue6GjLmzjBAQq7YQ0htYK-QZ3ob8oeQty7DD4tS9-VMcILqagc5VMft8imt4uv1ML8Igj3871EBMSLHyc-B4Yr_rhS_qm0ViENRezICeJOGbmXgJcRwApp-ntZyNE_0Q6huH_p-xYSax_zn697nu7wJkwLBExnF8nw4WqsVq35eipnlQQng"/>
+</div>
+<span class="font-title-lg text-sm uppercase">David G.</span>
+</td>
+<td class="p-4 text-xs font-label-caps text-on-surface-variant tracking-wider">92% ACIERTOS</td>
+<td class="p-4 text-right text-primary font-title-lg">10,500</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="p-4 font-headline-md text-on-surface-variant text-xl">05</td>
+<td class="p-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-white/10 overflow-hidden shrink-0">
+<img alt="Elena Fox avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmQrU2tIkirvpNDy7WEFUTbYEROCWml4gD_97ZXXOpGsjvhhltGql6LVE38NhQZXfvqF9KHL5XrxIGS8Gpzk9jfIuokdECyZxFsyLAuyxMAmq-fBh8uTjqbJ63-NbgeyzUAmLUpzzaY63l-IJF6sxnX_70A7H7tMdDT9aRek3Fkq3fQ2D4wub1YoPxP5Dje6jFbXYd5HjMbLkCbjSzeVNs7O33U0YE_Yc2cwWcTVv8Y5LaWrfAQWMECVqcU0nYlaf23ib4aXBkFMeN"/>
+</div>
+<span class="font-title-lg text-sm uppercase">Elena Fox</span>
+</td>
+<td class="p-4 text-xs font-label-caps text-on-surface-variant tracking-wider">88% ACIERTOS</td>
+<td class="p-4 text-right text-primary font-title-lg">9,980</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Section: Login Form -->
+<div class="w-full lg:w-[480px] flex flex-col justify-start">
+<div class="glass-card p-10 rounded-2xl relative overflow-hidden shadow-2xl">
+<div class="absolute -top-12 -right-12 w-48 h-48 bg-tertiary/10 blur-[80px]"></div>
+<div class="text-center mb-10">
+<h2 class="font-headline-xl text-3xl uppercase mb-2">Acceso al Sistema</h2>
+<p class="text-on-surface-variant font-body-md">Ingresa para gestionar tus pronósticos.</p>
+</div>
+<form class="space-y-6" onsubmit="return false;">
+<div>
+<label class="block font-label-caps text-[10px] uppercase text-outline mb-2 tracking-widest">Correo Electrónico</label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-4 focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-on-surface font-body-md" placeholder="usuario@mundial.com" type="email"/>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="block font-label-caps text-[10px] uppercase text-outline tracking-widest">Contraseña</label>
+<a class="text-primary text-[10px] font-bold hover:underline font-label-caps" href="#">¿OLVIDASTE TU CONTRASEÑA?</a>
+</div>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-4 focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-on-surface font-body-md" placeholder="••••••••" type="password"/>
+</div>
+<div class="flex items-center gap-3 mb-8">
+<input class="rounded-sm border-outline-variant bg-surface-container text-primary focus:ring-primary w-4 h-4" id="remember" type="checkbox"/>
+<label class="text-xs text-on-surface-variant font-body-md" for="remember">Recordar sesión</label>
+</div>
+<button class="w-full bg-primary text-on-primary py-5 rounded-lg font-headline-md text-xl uppercase tracking-widest shadow-xl hover:brightness-105 transition-all active:scale-[0.98]">
+                        INGRESAR
+                    </button>
+</form>
+<div class="mt-10 text-center border-t border-white/5 pt-8">
+<p class="text-on-surface-variant text-sm font-body-md">¿No tienes una cuenta? <a class="text-tertiary font-bold hover:underline" href="#">Regístrate gratis aquí</a></p>
+</div>
+</div>
+<!-- Small Features -->
+<div class="mt-lg grid grid-cols-2 gap-md">
+<div class="flex items-center gap-4 group">
+<div class="p-3 rounded-lg bg-surface-container-high border border-white/5 group-hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-primary text-2xl">analytics</span>
+</div>
+<span class="text-[10px] uppercase font-label-caps tracking-widest text-outline">Stats en Vivo</span>
+</div>
+<div class="flex items-center gap-4 group">
+<div class="p-3 rounded-lg bg-surface-container-high border border-white/5 group-hover:border-tertiary transition-colors">
+<span class="material-symbols-outlined text-tertiary text-2xl" style="font-variation-settings: 'FILL' 1;">groups</span>
+</div>
+<span class="text-[10px] uppercase font-label-caps tracking-widest text-outline">Ligas Privadas</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest w-full py-12 border-t border-white/5 mt-xl relative z-10">
+<div class="flex flex-col lg:flex-row justify-between items-center px-margin max-w-[1440px] mx-auto gap-8">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">trophy</span>
+<div class="font-display-lg text-xl brand-gradient uppercase">WC26 PREDICT</div>
+</div>
+<p class="text-[10px] text-outline font-label-caps uppercase tracking-[0.2em] lg:absolute lg:left-1/2 lg:-translate-x-1/2">
+            © 2026 WORLD CUP PREDICTOR. ALL RIGHTS RESERVED.
+        </p>
+<div class="flex gap-8">
+<a class="text-[10px] font-label-caps tracking-widest text-outline hover:text-primary transition-colors" href="#">PRIVACIDAD</a>
+<a class="text-[10px] font-label-caps tracking-widest text-outline hover:text-primary transition-colors" href="#">TÉRMINOS</a>
+<a class="text-[10px] font-label-caps tracking-widest text-outline hover:text-primary transition-colors" href="#">FIFA OFFICIAL</a>
+</div>
+</div>
+</footer>
+</body></html>
