@@ -13,7 +13,7 @@ export default function Dashboard() {
   const [grupo, setGrupo] = useState('');
   const [loading, setLoading] = useState(true);
   const [mensaje, setMensaje] = useState<{ texto: string; tipo: 'success' | 'error' } | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<any>(null);
   const [version, setVersion] = useState(0);
   const pendingRef = useRef<Map<number, { local: string; visitante: string }>>(new Map());
   const [pendingCount, setPendingCount] = useState(0);
@@ -22,7 +22,9 @@ export default function Dashboard() {
   const grupos = ['A','B','C','D','E','F','G','H','I','J','K','L'];
 
   useEffect(() => {
-    return () => clearTimeout(timerRef.current);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, []);
 
   useEffect(() => {
