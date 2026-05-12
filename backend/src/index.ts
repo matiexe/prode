@@ -42,9 +42,14 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-async function start(): Promise<void> {
+let isDbInitialized = false;
+
+async function initializeDb() {
+  if (isDbInitialized) return;
   try {
     await testConnection();
+    // Nota: sequelize.sync() se mantiene para simplicidad en este prototipo,
+    // asegurando que las tablas existan en Vercel Postgres.
     await sequelize.sync();
     console.log('Modelos sincronizados con la base de datos.');
 
@@ -68,15 +73,26 @@ async function start(): Promise<void> {
       });
       console.log('Usuario administrador creado (admin@prode2026.com).');
     }
-
-    app.listen(Number(PORT), '0.0.0.0', () => {
-      console.log(`Servidor corriendo en http://0.0.0.0:${PORT}`);
-      console.log(`Documentacion API: http://0.0.0.0:${PORT}/api/docs`);
-    });
+    isDbInitialized = true;
   } catch (error) {
-    console.error('Error al iniciar el servidor:', error);
-    process.exit(1);
+    console.error('Error al inicializar la base de datos:', error);
   }
 }
 
-start();
+// Middleware para asegurar inicialización de DB en la primera petición (Warm start)
+app.use(async (_req, _res, next) => {
+  if (!isDbInitialized) {
+    await initializeDb();
+  }
+  next();
+});
+
+// En desarrollo local arrancamos el servidor manualmente
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(Number(PORT), '0.0.0.0', () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  });
+}
+
+// Exportamos para que Vercel pueda manejar el servidor express
+export default app;
