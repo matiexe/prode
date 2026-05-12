@@ -75,8 +75,8 @@ export default function Dashboard() {
     } catch {
       setMensaje({ texto: 'Error al guardar el pronostico', tipo: 'error' });
     }
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setMensaje(null), 3000);
+    clearTimeout(timerRef.current as any);
+    timerRef.current = setTimeout(() => setMensaje(null), 3000) as any;
   };
 
   const handleGuardarTodos = async () => {
@@ -109,8 +109,8 @@ export default function Dashboard() {
         : `Guardados: ${ok}, errores: ${err}`,
       tipo: err === 0 ? 'success' : 'error',
     });
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setMensaje(null), 4000);
+    clearTimeout(timerRef.current as any);
+    timerRef.current = setTimeout(() => setMensaje(null), 4000) as any;
   };
 
   const fases = ['grupos', '16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final'];
