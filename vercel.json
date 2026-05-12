@@ -13,6 +13,7 @@
       }
     }
   ],
+  "installCommand": "npm install",
   "routes": [
     {
       "src": "/api/(.*)",
