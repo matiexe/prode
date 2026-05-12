@@ -1,5 +1,6 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
+import pg from 'pg';
 
 dotenv.config();
 
@@ -8,6 +9,7 @@ const connectionString = process.env.POSTGRES_URL;
 export const sequelize = connectionString
   ? new Sequelize(connectionString, {
       dialect: 'postgres',
+      dialectModule: pg,
       dialectOptions: {
         ssl: {
           require: true,
@@ -34,6 +36,7 @@ export const sequelize = connectionString
         host: process.env.DB_HOST || 'localhost',
         port: parseInt(process.env.DB_PORT || '5432', 10),
         dialect: 'postgres',
+        dialectModule: pg,
         logging: process.env.NODE_ENV === 'development' ? console.log : false,
         define: {
           timestamps: true,
