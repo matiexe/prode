@@ -64,11 +64,11 @@ Partido.init(
       allowNull: false,
     },
     golesLocal: {
-      type: DataTypes.TINYINT,
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     golesVisitante: {
-      type: DataTypes.TINYINT,
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     ganadorNombre: {

@@ -44,7 +44,7 @@ export default function Brackets({ partidos }: BracketsProps) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     {getFlagUrl(p.equipoLocal) && <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} srcSet={getFlagSrcset(p.equipoLocal)} alt="" />}
                     <span style={{ 
-                      fontWeight: p.estado === 'finalizado' && p.golesLocal! > p.golesVisitante! ? '700' : '400',
+                      fontWeight: p.estado === 'finalizado' && p.ganadorNombre === p.equipoLocal ? '700' : '400',
                       color: p.equipoLocal === 'Por definir' ? 'var(--outline)' : 'inherit'
                     }}>
                       {p.equipoLocal}
@@ -56,7 +56,7 @@ export default function Brackets({ partidos }: BracketsProps) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     {getFlagUrl(p.equipoVisitante) && <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} srcSet={getFlagSrcset(p.equipoVisitante)} alt="" />}
                     <span style={{ 
-                      fontWeight: p.estado === 'finalizado' && p.golesVisitante! > p.golesLocal! ? '700' : '400',
+                      fontWeight: p.estado === 'finalizado' && p.ganadorNombre === p.equipoVisitante ? '700' : '400',
                       color: p.equipoVisitante === 'Por definir' ? 'var(--outline)' : 'inherit'
                     }}>
                       {p.equipoVisitante}
