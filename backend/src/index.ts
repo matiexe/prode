@@ -42,10 +42,9 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-let isDbInitialized = false;
+let dbInitializationPromise: Promise<void> | null = null;
 
 async function initializeDb() {
-  if (isDbInitialized) return;
   try {
     await testConnection();
     // Nota: sequelize.sync() se mantiene para simplicidad en este prototipo,
@@ -73,18 +72,25 @@ async function initializeDb() {
       });
       console.log('Usuario administrador creado (admin@prode2026.com).');
     }
-    isDbInitialized = true;
   } catch (error) {
     console.error('Error al inicializar la base de datos:', error);
+    dbInitializationPromise = null; // Permitir reintento en la siguiente petición si falla
+    throw error;
   }
 }
 
 // Middleware para asegurar inicialización de DB en la primera petición (Warm start)
 app.use(async (_req, _res, next) => {
-  if (!isDbInitialized) {
-    await initializeDb();
+  if (!dbInitializationPromise) {
+    dbInitializationPromise = initializeDb();
   }
-  next();
+  
+  try {
+    await dbInitializationPromise;
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
 // En desarrollo local arrancamos el servidor manualmente
