@@ -45,12 +45,12 @@ Pronostico.init(
       references: { model: Partido, key: 'id' },
     },
     golesLocal: {
-      type: DataTypes.TINYINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       validate: { min: 0 },
     },
     golesVisitante: {
-      type: DataTypes.TINYINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       validate: { min: 0 },
     },
