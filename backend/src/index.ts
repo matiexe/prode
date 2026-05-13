@@ -38,26 +38,6 @@ app.use('/api/pronosticos', pronosticosRoutes);
 app.use('/api/admin/configuracion', configuracionRoutes);
 app.use('/api/seed', seedRoutes);
 
-app.get('/api/health', async (_req, res) => {
-  try {
-    const [tables]: any = await sequelize.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
-    res.json({ 
-      status: 'ok', 
-      timestamp: new Date().toISOString(),
-      database: sequelize.getDatabaseName(),
-      tables: tables.map((t: any) => t.table_name),
-      env: process.env.NODE_ENV
-    });
-  } catch (error: any) {
-    res.status(500).json({ 
-      status: 'error', 
-      error: error.message,
-      database: sequelize.getDatabaseName(),
-      env: process.env.NODE_ENV
-    });
-  }
-});
-
 let dbInitializationPromise: Promise<void> | null = null;
 
 async function initializeDb() {
@@ -106,6 +86,30 @@ app.use(async (_req, _res, next) => {
     next();
   } catch (err) {
     next(err);
+  }
+});
+
+app.get('/api/health', async (_req, res) => {
+  try {
+    const [results]: any = await sequelize.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+    const tables = Array.isArray(results) ? results.map((r: any) => r.table_name) : [];
+    
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      database: sequelize.getDatabaseName(),
+      host: (sequelize.connectionManager as any).config.host,
+      tables,
+      env: process.env.NODE_ENV
+    });
+  } catch (error: any) {
+    res.status(500).json({ 
+      status: 'error', 
+      error: error.message,
+      database: sequelize.getDatabaseName(),
+      host: (sequelize.connectionManager as any).config.host,
+      env: process.env.NODE_ENV
+    });
   }
 });
 
