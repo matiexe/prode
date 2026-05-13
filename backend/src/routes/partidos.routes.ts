@@ -150,3 +150,15 @@ partidosAdminRouter.put('/:id/resultado', async (req: AuthRequest, res: Response
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
+
+partidosAdminRouter.post('/cerrar-grupos', async (_req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { cerrarFaseGrupos } = await import('../services/torneo.service');
+    await cerrarFaseGrupos();
+    res.json({ mensaje: 'Fase de grupos cerrada y llaves de 16vos generadas exitosamente.' });
+  } catch (error: any) {
+    console.error('Error al cerrar fase de grupos:', error);
+    res.status(500).json({ error: error.message || 'Error interno del servidor' });
+  }
+});
+
