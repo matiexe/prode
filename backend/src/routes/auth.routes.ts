@@ -19,8 +19,9 @@ router.post('/solicitar-otp', async (req: Request, res: Response): Promise<void>
 
     const totalUsers = await Usuario.count();
     const allUsers = await Usuario.findAll({ attributes: ['email', 'activo'] });
+    console.log(`[DEBUG] Body recibido: ${JSON.stringify(req.body)}`);
     console.log(`[DEBUG] Intentando buscar email: "${email}". Usuarios totales en DB: ${totalUsers}`);
-    console.log(`[DEBUG] Usuarios existentes: ${JSON.stringify(allUsers)}`);
+    console.log(`[DEBUG] Usuarios existentes en DB: ${JSON.stringify(allUsers)}`);
 
     // Búsqueda insensible a mayúsculas/minúsculas para Postgres
     const usuario = await Usuario.findOne({ 
@@ -29,6 +30,8 @@ router.post('/solicitar-otp', async (req: Request, res: Response): Promise<void>
         activo: true 
       } 
     });
+
+    console.log(`[DEBUG] Resultado de búsqueda: ${usuario ? 'Encontrado: ' + usuario.email : 'No encontrado'}`);
 
     if (!usuario) {
       res.status(404).json({ error: 'Usuario no encontrado. Contacta al administrador.' });
