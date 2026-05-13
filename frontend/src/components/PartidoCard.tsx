@@ -30,7 +30,8 @@ export default function PartidoCard({
   });
 
   const yaJugado = partido.estado !== 'pendiente';
-  const puedeEditar = partido.estado === 'pendiente' && !readonly;
+  const yaEmpezo = new Date() > new Date(partido.fechaHora);
+  const puedeEditar = partido.estado === 'pendiente' && !yaEmpezo && !readonly;
 
   const handleSave = async () => {
     const gl = parseInt(local, 10);
@@ -111,15 +112,15 @@ export default function PartidoCard({
             </div>
           )}
 
-          {yaJugado && (
+          {(!puedeEditar && inicialLocal !== undefined) && (
             <div className="mi-pronostico">
               <span className="pronostico-label">Tu pronostico:</span>
               <span className="pronostico-valor">
-                {inicialLocal ?? '-'} - {inicialVisitante ?? '-'}
+                {inicialLocal} - {inicialVisitante}
               </span>
               {partido.estado === 'finalizado' && (
                 <span className="puntos-obtenidos">
-                  +{puntosObtenidos ?? (inicialLocal !== undefined ? '?' : 0)} pts
+                  +{puntosObtenidos ?? 0} pts
                 </span>
               )}
             </div>
