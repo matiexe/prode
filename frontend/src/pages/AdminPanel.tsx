@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/useAuth';
 import { listarUsuarios, crearUsuario, desactivarUsuario } from '../api/usuarios';
 import { listarPartidos, generarFixture, eliminarFixture, cargarResultado, cerrarFase } from '../api/partidos';
 import { obtenerConfiguracion, actualizarConfiguracion } from '../api/configuracion';
-import { getFlagUrl, getFlagSrcset } from '../utils/flags';
+import { getFlagUrl } from '../utils/flags';
 import FormUsuario from '../components/FormUsuario';
 import ModalResultado from '../components/ModalResultado';
 import type { Usuario, Partido, ConfiguracionPuntos } from '../types';
