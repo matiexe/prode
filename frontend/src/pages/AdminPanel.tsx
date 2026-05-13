@@ -133,103 +133,127 @@ export default function AdminPanel() {
 
   return (
     <div className="page admin-panel">
-      <div className="admin-header">
-        <h1>Panel de Administracion</h1>
-        <p className="subtitle">{usuario?.nombre}</p>
-      </div>
+      <header className="admin-header">
+        <h1>Panel de Administración</h1>
+        <p className="subtitle">Bienvenido, {usuario?.nombre}. Gestiona usuarios, resultados y configuraciones del Mundial.</p>
+      </header>
 
-      {mensaje && <div className="success-message">{mensaje}<button onClick={() => setMensaje('')}>X</button></div>}
-
-      <div className="admin-tabs">
-        {(['usuarios', 'cargar', 'finalizados', 'configuracion'] as Tab[]).map((t) => (
-          <button key={t} className={`admin-tab ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>
-            {t === 'usuarios' ? 'Usuarios' :
-             t === 'cargar' ? 'Cargar Resultados' :
-             t === 'finalizados' ? 'Finalizados' : 'Configuracion'}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'usuarios' && (
-        <div className="admin-section">
-          <div className="section-header">
-            <h2>Usuarios registrados</h2>
-            <button className="btn-primary" onClick={() => setMostrarForm(true)}>+ Nuevo usuario</button>
-          </div>
-
-          {mostrarForm && (
-            <FormUsuario
-              onSubmit={handleCrearUsuario}
-              onCancel={() => setMostrarForm(false)}
-            />
-          )}
-
-          <table className="admin-table">
-            <thead>
-              <tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr>
-            </thead>
-            <tbody>
-              {usuarios.map((u) => (
-                <tr key={u.id}>
-                  <td>{u.nombre}</td>
-                  <td>{u.email}</td>
-                  <td>{u.rol}</td>
-                  <td>{u.activo ? 'Activo' : 'Inactivo'}</td>
-                  <td>
-                    {u.activo && u.id !== usuario?.id && (
-                      <button className="btn-danger" onClick={() => handleDesactivar(u.id)}>Desactivar</button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {mensaje && (
+        <div className="success-message">
+          <span>{mensaje}</span>
+          <button onClick={() => setMensaje('')}>✕</button>
         </div>
       )}
 
+      <nav className="admin-tabs">
+        {(['usuarios', 'cargar', 'finalizados', 'configuracion'] as Tab[]).map((t) => (
+          <button 
+            key={t} 
+            className={`admin-tab ${tab === t ? 'active' : ''}`} 
+            onClick={() => setTab(t)}
+          >
+            {t === 'usuarios' ? 'Usuarios' :
+             t === 'cargar' ? 'Cargar Resultados' :
+             t === 'finalizados' ? 'Finalizados' : 'Configuración'}
+          </button>
+        ))}
+      </nav>
+
+      {tab === 'usuarios' && (
+        <section className="admin-section">
+          <header className="section-header">
+            <h2>Gestión de Usuarios</h2>
+            <button className="admin-btn primary" onClick={() => setMostrarForm(true)}>
+              <span className="material-symbols-outlined">person_add</span>
+              Nuevo usuario
+            </button>
+          </header>
+
+          {mostrarForm && (
+            <div className="form-usuario glass-card">
+              <FormUsuario
+                onSubmit={handleCrearUsuario}
+                onCancel={() => setMostrarForm(false)}
+              />
+            </div>
+          )}
+
+          <div className="table-responsive">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th style={{ textAlign: 'right' }}>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usuarios.map((u) => (
+                  <tr key={u.id}>
+                    <td style={{ fontWeight: 600, color: 'var(--on-surface)' }}>{u.nombre}</td>
+                    <td>{u.email}</td>
+                    <td>
+                      <span className="fase-tag">{u.rol}</span>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${u.activo ? 'active' : 'inactive'}`}>
+                        {u.activo ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      {u.activo && u.id !== usuario?.id && (
+                        <button className="admin-btn danger" onClick={() => handleDesactivar(u.id)}>
+                          Desactivar
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       {tab === 'cargar' && (
-        <div className="admin-section">
-          <div className="section-header">
+        <section className="admin-section">
+          <header className="section-header">
             <h2>Cargar Resultados</h2>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <button className="btn-primary" onClick={handleGenerarFixture} disabled={generando}>
+            <div className="admin-actions">
+              <button className="admin-btn primary" onClick={handleGenerarFixture} disabled={generando}>
                 {generando ? 'Generando...' : 'Generar fixture'}
               </button>
               {faseFiltro !== 'final' && faseFiltro !== '3er_puesto' && (
                 <button 
-                  className="btn-secondary" 
+                  className="admin-btn secondary" 
                   onClick={handleCerrarFase} 
-                  disabled={cerrandoFase} 
-                  style={{ background: 'var(--tertiary-container)', color: 'var(--on-tertiary-container)' }}
+                  disabled={cerrandoFase}
                 >
-                  {cerrandoFase ? 'Cerrando...' : `🏆 Cerrar ${faseFiltro === 'grupos' ? 'fase de grupos' : faseFiltro}`}
+                  🏆 Cerrar {faseFiltro === 'grupos' ? 'fase de grupos' : faseFiltro}
                 </button>
               )}
-              <button className="btn-danger" onClick={handleEliminarFixture} disabled={eliminando}>
-                {eliminando ? 'Eliminando...' : 'Borrar fixture'}
+              <button className="admin-btn danger" onClick={handleEliminarFixture} disabled={eliminando}>
+                Borrar fixture
               </button>
             </div>
-          </div>
+          </header>
 
-          <div className="fase-tabs" style={{ marginBottom: '1rem' }}>
+          <nav className="fase-tabs">
             {['grupos', '16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final'].map((f) => (
               <button
                 key={f}
                 className={`fase-tab ${faseFiltro === f ? 'active' : ''}`}
                 onClick={() => { setFaseFiltro(f); setGrupoFiltro(''); fetchPartidos(f, ''); }}
               >
-                {f === 'grupos' ? 'Fase de Grupos' :
-                 f === '16vos' ? '16vos' :
-                 f === '8vos' ? '8vos' :
-                 f === 'cuartos' ? 'Cuartos' :
-                 f === 'semis' ? 'Semis' :
-                 f === '3er_puesto' ? '3er Puesto' : 'Final'}
+                {f === 'grupos' ? 'Fase de Grupos' : f}
               </button>
             ))}
-          </div>
+          </nav>
 
           {faseFiltro === 'grupos' && (
-            <div className="grupo-filtro" style={{ marginBottom: '1rem' }}>
+            <div className="grupo-filtro glass-card" style={{ padding: '1rem', borderRadius: '12px', marginBottom: '2rem' }}>
               <label>Filtrar por grupo: </label>
               <select
                 value={grupoFiltro}
@@ -243,27 +267,32 @@ export default function AdminPanel() {
             </div>
           )}
 
-          <div className="partidos-grid">
+          <div className="admin-matches-grid">
             {partidos.filter((p) => p.estado !== 'finalizado').map((p) => (
-              <div key={p.id} className="partido-card">
-                <div className="partido-header">
-                  <span>{p.fase}{p.grupo ? ` - Grupo ${p.grupo}` : ''}</span>
+              <article key={p.id} className="admin-match-card">
+                <div className="match-meta">
+                  <span className="fase-tag">{p.fase}</span>
+                  {p.grupo && <span className="grupo-tag">Grupo {p.grupo}</span>}
                 </div>
-                <div className="partido-body">
-                  <span>
-                    {getFlagUrl(p.equipoLocal) ? <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} srcSet={getFlagSrcset(p.equipoLocal)} alt="" /> : null}
+                <div className="team-row">
+                  <div className="team-info">
+                    {getFlagUrl(p.equipoLocal) && <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} alt="" />}
                     {p.equipoLocal}
-                  </span>
+                  </div>
                   <span className="vs">vs</span>
-                  <span>
-                    {getFlagUrl(p.equipoVisitante) ? <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} srcSet={getFlagSrcset(p.equipoVisitante)} alt="" /> : null}
+                  <div className="team-info">
                     {p.equipoVisitante}
-                  </span>
-                  <button className="btn-secondary" onClick={() => setPartidoModal(p)}>
-                    Cargar resultado
-                  </button>
+                    {getFlagUrl(p.equipoVisitante) && <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} alt="" />}
+                  </div>
                 </div>
-              </div>
+                <button 
+                  className="admin-btn primary" 
+                  style={{ width: '100%', marginTop: '1rem' }}
+                  onClick={() => setPartidoModal(p)}
+                >
+                  Cargar Resultado
+                </button>
+              </article>
             ))}
           </div>
 
@@ -274,103 +303,116 @@ export default function AdminPanel() {
               onClose={() => setPartidoModal(null)}
             />
           )}
-        </div>
+        </section>
       )}
 
       {tab === 'finalizados' && (
-        <div className="admin-section">
-          <div className="section-header">
+        <section className="admin-section">
+          <header className="section-header">
             <h2>Resultados Cargados</h2>
-          </div>
+          </header>
 
-          <div className="fase-tabs" style={{ marginBottom: '1rem' }}>
+          <nav className="fase-tabs">
             {['grupos', '16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final'].map((f) => (
               <button
                 key={f}
                 className={`fase-tab ${faseFiltro === f ? 'active' : ''}`}
                 onClick={() => { setFaseFiltro(f); setGrupoFiltro(''); fetchPartidos(f, ''); }}
               >
-                {f === 'grupos' ? 'Fase de Grupos' :
-                 f === '16vos' ? '16vos' :
-                 f === '8vos' ? '8vos' :
-                 f === 'cuartos' ? 'Cuartos' :
-                 f === 'semis' ? 'Semis' :
-                 f === '3er_puesto' ? '3er Puesto' : 'Final'}
+                {f === 'grupos' ? 'Fase de Grupos' : f}
               </button>
             ))}
-          </div>
+          </nav>
 
-          {faseFiltro === 'grupos' && (
-            <div className="grupo-filtro" style={{ marginBottom: '1rem' }}>
-              <label>Filtrar por grupo: </label>
-              <select
-                value={grupoFiltro}
-                onChange={(e) => { setGrupoFiltro(e.target.value); fetchPartidos('grupos', e.target.value); }}
-              >
-                <option value="">Todos los grupos</option>
-                {['A','B','C','D','E','F','G','H','I','J','K','L'].map((g) => (
-                  <option key={g} value={g}>Grupo {g}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {partidos.filter((p) => p.estado === 'finalizado').length === 0 ? (
-            <div className="empty">No hay resultados cargados aun</div>
-          ) : (
-            <div className="partidos-grid">
-              {partidos.filter((p) => p.estado === 'finalizado').map((p) => (
-                <div key={p.id} className={`partido-card finalizado`}>
-                  <div className="partido-header">
-                    <span className="fase-tag">{p.fase}{p.grupo ? ` - Grupo ${p.grupo}` : ''}</span>
-                    <span className="fecha">{new Date(p.fechaHora).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}</span>
+          <div className="admin-matches-grid">
+            {partidos.filter((p) => p.estado === 'finalizado').map((p) => (
+              <article key={p.id} className="admin-match-card finalizado">
+                <div className="match-meta">
+                  <span className="fase-tag">{p.fase}</span>
+                  <span className="fecha">{new Date(p.fechaHora).toLocaleDateString()}</span>
+                </div>
+                <div className="team-row">
+                  <div className="team-info">
+                    {getFlagUrl(p.equipoLocal) && <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} alt="" />}
+                    {p.equipoLocal}
                   </div>
-                  <div className="partido-body">
-                    <div className="equipo">
-                      {getFlagUrl(p.equipoLocal) ? <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} srcSet={getFlagSrcset(p.equipoLocal)} alt="" /> : null}
-                      {p.equipoLocal}
-                    </div>
-                    <div className="marcador">
-                      <span className="resultado-real">{p.golesLocal} - {p.golesVisitante}</span>
-                    </div>
-                    <div className="equipo">
-                      {getFlagUrl(p.equipoVisitante) ? <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} srcSet={getFlagSrcset(p.equipoVisitante)} alt="" /> : null}
-                      {p.equipoVisitante}
-                    </div>
+                  <div className="score-display">
+                    {p.golesLocal} - {p.golesVisitante}
+                  </div>
+                  <div className="team-info">
+                    {p.equipoVisitante}
+                    {getFlagUrl(p.equipoVisitante) && <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} alt="" />}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+                {p.ganadorNombre && (
+                  <div style={{ textAlign: 'center', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--tertiary)' }}>
+                    Ganador: <strong>{p.ganadorNombre}</strong>
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
       )}
 
       {tab === 'configuracion' && configPuntos && (
-        <div className="admin-section">
-          <h2>Puntuacion</h2>
-          <form onSubmit={handleActualizarConfig} className="config-form">
-            <div className="form-group">
-              <label>Resultado exacto (puntos)</label>
-              <input type="number" value={configPuntos.exacto} onChange={(e) => setConfigPuntos({ ...configPuntos, exacto: parseInt(e.target.value, 10) || 0 })} />
+        <section className="admin-section">
+          <header className="section-header">
+            <h2>Sistema de Puntuación</h2>
+          </header>
+          
+          <form onSubmit={handleActualizarConfig}>
+            <div className="admin-config-grid">
+              <div className="config-card">
+                <label>Resultado Exacto</label>
+                <input 
+                  type="number" 
+                  value={configPuntos.exacto} 
+                  onChange={(e) => setConfigPuntos({ ...configPuntos, exacto: parseInt(e.target.value, 10) || 0 })} 
+                />
+                <p className="hint">Puntos por acertar el marcador exacto.</p>
+              </div>
+              <div className="config-card">
+                <label>Diferencia de Goles</label>
+                <input 
+                  type="number" 
+                  value={configPuntos.diferencia} 
+                  onChange={(e) => setConfigPuntos({ ...configPuntos, diferencia: parseInt(e.target.value, 10) || 0 })} 
+                />
+                <p className="hint">Acertar ganador y diferencia (ej: pusiste 2-0 y fue 3-1).</p>
+              </div>
+              <div className="config-card">
+                <label>Solo Ganador</label>
+                <input 
+                  type="number" 
+                  value={configPuntos.ganador} 
+                  onChange={(e) => setConfigPuntos({ ...configPuntos, ganador: parseInt(e.target.value, 10) || 0 })} 
+                />
+                <p className="hint">Puntos por acertar solo quién gana o si hay empate.</p>
+              </div>
+              <div className="config-card">
+                <label>Error</label>
+                <input 
+                  type="number" 
+                  value={configPuntos.error} 
+                  onChange={(e) => setConfigPuntos({ ...configPuntos, error: parseInt(e.target.value, 10) || 0 })} 
+                />
+                <p className="hint">Puntos por pronóstico totalmente fallido.</p>
+              </div>
             </div>
-            <div className="form-group">
-              <label>Diferencia de goles (puntos)</label>
-              <input type="number" value={configPuntos.diferencia} onChange={(e) => setConfigPuntos({ ...configPuntos, diferencia: parseInt(e.target.value, 10) || 0 })} />
-            </div>
-            <div className="form-group">
-              <label>Solo ganador (puntos)</label>
-              <input type="number" value={configPuntos.ganador} onChange={(e) => setConfigPuntos({ ...configPuntos, ganador: parseInt(e.target.value, 10) || 0 })} />
-            </div>
-            <div className="form-group">
-              <label>Error (puntos)</label>
-              <input type="number" value={configPuntos.error} onChange={(e) => setConfigPuntos({ ...configPuntos, error: parseInt(e.target.value, 10) || 0 })} />
-            </div>
-            <button type="submit" className="btn-primary">Guardar configuracion</button>
+            <button type="submit" className="admin-btn primary" style={{ padding: '1rem 3rem' }}>
+              Guardar Configuración
+            </button>
           </form>
-        </div>
+        </section>
       )}
 
-      <button onClick={logout} className="btn-logout">Cerrar sesion</button>
+      <footer style={{ marginTop: 'auto' }}>
+        <button onClick={logout} className="admin-btn danger" style={{ width: 'auto' }}>
+          <span className="material-symbols-outlined">logout</span>
+          Cerrar sesión
+        </button>
+      </footer>
     </div>
   );
 }
