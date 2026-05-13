@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { Op } from 'sequelize';
 import { Usuario } from '../models/Usuario';
 import { CodigoOTP } from '../models/CodigoOTP';
 import { sendOTP } from '../services/mailer';
@@ -16,7 +17,17 @@ router.post('/solicitar-otp', async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const usuario = await Usuario.findOne({ where: { email, activo: true } });
+    const totalUsers = await Usuario.count();
+    console.log(`[DEBUG] Intentando buscar email: ${email}. Usuarios totales en DB: ${totalUsers}`);
+
+    // Búsqueda insensible a mayúsculas/minúsculas para Postgres
+    const usuario = await Usuario.findOne({ 
+      where: { 
+        email: { [Op.iLike]: email.trim() }, 
+        activo: true 
+      } 
+    });
+
     if (!usuario) {
       res.status(404).json({ error: 'Usuario no encontrado. Contacta al administrador.' });
       return;
