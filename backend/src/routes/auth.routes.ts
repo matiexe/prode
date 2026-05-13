@@ -18,7 +18,9 @@ router.post('/solicitar-otp', async (req: Request, res: Response): Promise<void>
     }
 
     const totalUsers = await Usuario.count();
-    console.log(`[DEBUG] Intentando buscar email: ${email}. Usuarios totales en DB: ${totalUsers}`);
+    const allUsers = await Usuario.findAll({ attributes: ['email', 'activo'] });
+    console.log(`[DEBUG] Intentando buscar email: "${email}". Usuarios totales en DB: ${totalUsers}`);
+    console.log(`[DEBUG] Usuarios existentes: ${JSON.stringify(allUsers)}`);
 
     // Búsqueda insensible a mayúsculas/minúsculas para Postgres
     const usuario = await Usuario.findOne({ 
