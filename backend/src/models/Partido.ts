@@ -19,18 +19,18 @@ export interface PartidoAttributes {
 export interface PartidoCreationAttributes extends Optional<PartidoAttributes, 'id' | 'golesLocal' | 'golesVisitante' | 'ganadorNombre' | 'estado'> {}
 
 export class Partido extends Model<PartidoAttributes, PartidoCreationAttributes> implements PartidoAttributes {
-  public id!: number;
-  public fase!: 'grupos' | '16vos' | '8vos' | 'cuartos' | 'semis' | '3er_puesto' | 'final';
-  public grupo!: string | null;
-  public equipoLocal!: string;
-  public equipoVisitante!: string;
-  public fechaHora!: Date;
-  public golesLocal!: number | null;
-  public golesVisitante!: number | null;
-  public ganadorNombre!: string | null;
-  public estado!: 'pendiente' | 'jugando' | 'finalizado';
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare id: number;
+  declare fase: 'grupos' | '16vos' | '8vos' | 'cuartos' | 'semis' | '3er_puesto' | 'final';
+  declare grupo: string | null;
+  declare equipoLocal: string;
+  declare equipoVisitante: string;
+  declare fechaHora: Date;
+  declare golesLocal: number | null;
+  declare golesVisitante: number | null;
+  declare ganadorNombre: string | null;
+  declare estado: 'pendiente' | 'jugando' | 'finalizado';
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 Partido.init(
