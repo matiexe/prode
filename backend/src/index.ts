@@ -38,8 +38,24 @@ app.use('/api/pronosticos', pronosticosRoutes);
 app.use('/api/admin/configuracion', configuracionRoutes);
 app.use('/api/seed', seedRoutes);
 
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/api/health', async (_req, res) => {
+  try {
+    const [tables]: any = await sequelize.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      database: sequelize.getDatabaseName(),
+      tables: tables.map((t: any) => t.table_name),
+      env: process.env.NODE_ENV
+    });
+  } catch (error: any) {
+    res.status(500).json({ 
+      status: 'error', 
+      error: error.message,
+      database: sequelize.getDatabaseName(),
+      env: process.env.NODE_ENV
+    });
+  }
 });
 
 let dbInitializationPromise: Promise<void> | null = null;
