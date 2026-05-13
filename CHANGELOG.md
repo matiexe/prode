@@ -2,6 +2,15 @@
 
 All notable changes to this project.
 
+## [v1.3.0] - 2026-05-13
+
+### New Features
+- **Backend:** Implemented generic knockout phase progression logic.
+- **Backend:** Added support for tracking match winners (crucial for penalty shootouts).
+- **Admin:** Enhanced Results entry with winner selection for knockout draws.
+- **Admin:** Added dynamic "Close Phase" buttons to advance the entire tournament.
+- **UI:** Brackets now highlight winning teams and accurately reflect advanced rivals.
+
 ## [v1.2.0] - 2026-05-13
 
 ### New Features
