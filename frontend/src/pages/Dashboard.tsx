@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { listarPartidos } from '../api/partidos';
 import { obtenerMisPronosticos, guardarPronostico } from '../api/pronosticos';
 import PartidoCard from '../components/PartidoCard';
+import TablaGrupo, { EquipoPosicion } from '../components/TablaGrupo';
 import type { Partido, Pronostico } from '../types';
 
 export default function Dashboard() {
@@ -63,6 +64,8 @@ export default function Dashboard() {
       pendingRef.current.delete(partidoId);
     }
     setPendingCount(pendingRef.current.size);
+    // Forzamos re-render para el simulador
+    setVersion(v => v + 1);
   };
 
   const handleGuardar = async (partidoId: number, golesLocal: number, golesVisitante: number) => {
@@ -114,6 +117,78 @@ export default function Dashboard() {
     clearTimeout(timerRef.current as any);
     timerRef.current = setTimeout(() => setMensaje(null), 4000) as any;
   };
+
+  // Lógica del simulador
+  const tablaProyectada = useMemo(() => {
+    if (fase !== 'grupos' || !grupo) return null;
+
+    const tabla: Record<string, EquipoPosicion> = {};
+    const initEquipo = (nombre: string) => {
+      if (!tabla[nombre]) {
+        tabla[nombre] = { equipo: nombre, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dg: 0, pts: 0 };
+      }
+    };
+
+    partidos.forEach(p => {
+      initEquipo(p.equipoLocal);
+      initEquipo(p.equipoVisitante);
+
+      let gL: number | null = null;
+      let gV: number | null = null;
+
+      if (p.estado === 'finalizado') {
+        gL = p.golesLocal;
+        gV = p.golesVisitante;
+      } else {
+        const pending = pendingRef.current.get(p.id);
+        if (pending) {
+          gL = parseInt(pending.local, 10);
+          gV = parseInt(pending.visitante, 10);
+        } else {
+          const saved = getPronostico(p.id);
+          if (saved) {
+            gL = saved.local;
+            gV = saved.visitante;
+          }
+        }
+      }
+
+      if (gL !== null && gV !== null && !isNaN(gL) && !isNaN(gV)) {
+        const local = tabla[p.equipoLocal];
+        const visit = tabla[p.equipoVisitante];
+
+        local.pj++;
+        visit.pj++;
+        local.gf += gL;
+        local.gc += gV;
+        visit.gf += gV;
+        visit.gc += gL;
+
+        if (gL > gV) {
+          local.pg++;
+          local.pts += 3;
+          visit.pp++;
+        } else if (gL < gV) {
+          visit.pg++;
+          visit.pts += 3;
+          local.pp++;
+        } else {
+          local.pe++;
+          visit.pe++;
+          local.pts += 1;
+          visit.pts += 1;
+        }
+        local.dg = local.gf - local.gc;
+        visit.dg = visit.gf - visit.gc;
+      }
+    });
+
+    return Object.values(tabla).sort((a, b) => {
+      if (b.pts !== a.pts) return b.pts - a.pts;
+      if (b.dg !== a.dg) return b.dg - a.dg;
+      return b.gf - a.gf;
+    });
+  }, [partidos, pronosticos, grupo, fase, version]);
 
   const fases = ['grupos', '16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final'];
 
@@ -186,52 +261,68 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {fase === 'grupos' && (
-        <div className="grupo-filtro">
-          <label>Filtrar por grupo: </label>
-          <select value={grupo} onChange={(e) => setGrupo(e.target.value)}>
-            <option value="">Todos los grupos</option>
-            {grupos.map((g) => (
-              <option key={g} value={g}>Grupo {g}</option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="loading">Cargando partidos...</div>
-      ) : partidos.length === 0 ? (
-        <div className="empty">
-          No hay partidos disponibles para esta fase. El administrador debe generar el fixture.
-        </div>
-      ) : (
-        <>
-          {pendingCount > 0 && (
-            <div className="save-all-bar">
-              <span>{pendingCount} pronostico{pendingCount !== 1 ? 's' : ''} pendiente{pendingCount !== 1 ? 's' : ''}</span>
-              <button className="btn-save-all" onClick={handleGuardarTodos} disabled={savingAll}>
-                {savingAll ? 'Guardando...' : `Guardar Todos (${pendingCount})`}
-              </button>
+      <div className="dashboard-content" style={{ display: 'grid', gridTemplateColumns: fase === 'grupos' && grupo ? '1fr 320px' : '1fr', gap: '2rem' }}>
+        <div className="dashboard-left">
+          {fase === 'grupos' && (
+            <div className="grupo-filtro">
+              <label>Filtrar por grupo: </label>
+              <select value={grupo} onChange={(e) => setGrupo(e.target.value)}>
+                <option value="">Todos los grupos</option>
+                {grupos.map((g) => (
+                  <option key={g} value={g}>Grupo {g}</option>
+                ))}
+              </select>
             </div>
           )}
-          <div className="partidos-grid">
-            {partidos.map((partido) => {
-              const miProno = getPronostico(partido.id);
-              return (
-                <PartidoCard
-                  key={`${partido.id}-${version}`}
-                  partido={partido}
-                  golesLocal={miProno?.local}
-                  golesVisitante={miProno?.visitante}
-                  puntosObtenidos={miProno?.puntos}
-                  onGuardar={(local, visitante) => handleGuardar(partido.id, local, visitante)}
-                  onInputChange={handleInputChange}
-                />
-              );
-            })}
+
+          {loading ? (
+            <div className="loading">Cargando partidos...</div>
+          ) : partidos.length === 0 ? (
+            <div className="empty">
+              No hay partidos disponibles para esta fase. El administrador debe generar el fixture.
+            </div>
+          ) : (
+            <>
+              {pendingCount > 0 && (
+                <div className="save-all-bar">
+                  <span>{pendingCount} pronostico{pendingCount !== 1 ? 's' : ''} pendiente{pendingCount !== 1 ? 's' : ''}</span>
+                  <button className="btn-save-all" onClick={handleGuardarTodos} disabled={savingAll}>
+                    {savingAll ? 'Guardando...' : `Guardar Todos (${pendingCount})`}
+                  </button>
+                </div>
+              )}
+              <div className="partidos-grid">
+                {partidos.map((partido) => {
+                  const miProno = getPronostico(partido.id);
+                  return (
+                    <PartidoCard
+                      key={`${partido.id}-${version}`}
+                      partido={partido}
+                      golesLocal={miProno?.local}
+                      golesVisitante={miProno?.visitante}
+                      puntosObtenidos={miProno?.puntos}
+                      onGuardar={(local, visitante) => handleGuardar(partido.id, local, visitante)}
+                      onInputChange={handleInputChange}
+                    />
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+
+        {fase === 'grupos' && grupo && tablaProyectada && (
+          <div className="dashboard-right">
+            <h2 style={{ fontSize: '1rem', marginBottom: '1rem', fontFamily: 'Anybody', textTransform: 'uppercase' }}>
+              Simulador de Posiciones
+            </h2>
+            <TablaGrupo titulo={`Grupo ${grupo} (Proyectado)`} posiciones={tablaProyectada} />
+            <p style={{ fontSize: '0.7rem', color: 'var(--outline)', fontStyle: 'italic', marginTop: '-1.5rem' }}>
+              * Basado en tus pronósticos y resultados reales.
+            </p>
           </div>
-        </>
-      )}
+        )}
+      </div>
 
       <button onClick={logout} className="btn-logout">Cerrar sesion</button>
     </div>

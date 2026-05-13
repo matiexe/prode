@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { obtenerRanking } from '../api/pronosticos';
+import { listarPartidos } from '../api/partidos';
 import { solicitarOTP, verificarOTP } from '../api/auth';
 import { useAuth } from '../contexts/useAuth';
-import type { RankingEntry } from '../types';
+import Brackets from '../components/Brackets';
+import type { RankingEntry, Partido } from '../types';
 import fifaImg from '../assets/fifa.jpg';
 
 function getInitials(name: string): string {
@@ -13,6 +15,7 @@ function getInitials(name: string): string {
 export default function RankingPage() {
   const { usuario } = useAuth();
   const [ranking, setRanking] = useState<RankingEntry[]>([]);
+  const [partidos, setPartidos] = useState<Partido[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [email, setEmail] = useState('');
@@ -24,10 +27,14 @@ export default function RankingPage() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const data = await obtenerRanking();
-        setRanking(data);
+        const [rankingData, partidosData] = await Promise.all([
+          obtenerRanking(),
+          listarPartidos()
+        ]);
+        setRanking(rankingData);
+        setPartidos(partidosData);
       } catch (err) {
-        console.error('Error al obtener ranking:', err);
+        console.error('Error al obtener datos:', err);
       } finally {
         setLoading(false);
       }
@@ -76,12 +83,12 @@ export default function RankingPage() {
             <div className="ranking-header">
               <h2>Ranking Global</h2>
               <div className="ranking-chips">
-                <span className="ranking-chip">Temp. 1</span>
+                <span className="ranking-chip active">Temp. 1</span>
               </div>
             </div>
 
             {loading ? (
-              <div className="loading">Cargando ranking...</div>
+              <div className="loading">Cargando datos...</div>
             ) : ranking.length === 0 ? (
               <div className="empty">Aun no hay puntajes registrados</div>
             ) : (
@@ -138,6 +145,19 @@ export default function RankingPage() {
                 )}
               </>
             )}
+          </div>
+
+          <div className="brackets-section" style={{ marginTop: '3rem' }}>
+            <h2 style={{ 
+              fontFamily: 'Anybody', 
+              fontSize: '1.5rem', 
+              fontWeight: '700', 
+              textTransform: 'uppercase', 
+              marginBottom: '1rem' 
+            }}>
+              Camino a la Final
+            </h2>
+            {loading ? <div className="loading">Cargando llaves...</div> : <Brackets partidos={partidos} />}
           </div>
         </div>
 
