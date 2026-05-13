@@ -27,6 +27,7 @@ export default function AdminPanel() {
   const [mensaje, setMensaje] = useState('');
   const [generando, setGenerando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
+  const [cerrandoGrupos, setCerrandoGrupos] = useState(false);
 
   useEffect(() => {
     if (!usuario) return;
@@ -55,6 +56,23 @@ export default function AdminPanel() {
       setConfigPuntos(data);
     } catch (err) { console.error(err); }
   };
+
+  const handleCerrarGrupos = async () => {
+    if (!window.confirm('¿Estás seguro de cerrar la fase de grupos? Esto generará automáticamente los emparejamientos de 16vos de final basados en las posiciones actuales.')) return;
+    
+    setCerrandoGrupos(true);
+    setMensaje('');
+    try {
+      const res = await apiClient.post('/admin/partidos/cerrar-grupos');
+      setMensaje(res.data.mensaje);
+      if (tab === 'cargar') fetchPartidos();
+    } catch (err: any) {
+      setMensaje(err.response?.data?.error || 'Error al cerrar fase de grupos');
+    } finally {
+      setCerrandoGrupos(false);
+    }
+  };
+
 
   const handleCrearUsuario = async (nombre: string, email: string, rol: string) => {
     await crearUsuario(nombre, email, rol);
@@ -172,9 +190,12 @@ export default function AdminPanel() {
         <div className="admin-section">
           <div className="section-header">
             <h2>Cargar Resultados</h2>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               <button className="btn-primary" onClick={handleGenerarFixture} disabled={generando}>
                 {generando ? 'Generando...' : 'Generar fixture'}
+              </button>
+              <button className="btn-secondary" onClick={handleCerrarGrupos} disabled={cerrandoGrupos} style={{ background: 'var(--tertiary-container)', color: 'var(--on-tertiary-container)' }}>
+                {cerrandoGrupos ? 'Cerrando...' : '🏆 Cerrar fase de grupos'}
               </button>
               <button className="btn-danger" onClick={handleEliminarFixture} disabled={eliminando}>
                 {eliminando ? 'Eliminando...' : 'Borrar fixture'}

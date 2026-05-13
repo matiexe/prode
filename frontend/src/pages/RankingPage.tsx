@@ -4,6 +4,7 @@ import { obtenerRanking } from '../api/pronosticos';
 import { solicitarOTP, verificarOTP } from '../api/auth';
 import { useAuth } from '../contexts/useAuth';
 import type { RankingEntry } from '../types';
+import fifaImg from '../assets/fifa.jpg';
 
 function getInitials(name: string): string {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -141,10 +142,17 @@ export default function RankingPage() {
         </div>
 
         <div className="hero-right">
+          <div className="hero-image-container" style={{ marginBottom: '2rem' }}>
+            <img src={fifaImg} alt="FIFA 2026" style={{ width: '100%', borderRadius: '16px', display: 'block', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }} />
+          </div>
+
           {usuario ? (
-            <Link to="/dashboard" style={{ display: 'block' }}>
-              <img src="/fifa.jpg" alt="FIFA 2026" style={{ width: '100%', borderRadius: '16px', display: 'block' }} />
-            </Link>
+            <div className="dashboard-link-card" style={{ background: 'rgba(177, 198, 249, 0.1)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(177, 198, 249, 0.2)', textAlign: 'center' }}>
+              <h3 style={{ marginBottom: '1rem' }}>Ya estas participando</h3>
+              <Link to="/dashboard" className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none' }}>
+                Ir a mi Dashboard
+              </Link>
+            </div>
           ) : (
           <div className="login-card-inline">
             <div className="login-card-inner">
