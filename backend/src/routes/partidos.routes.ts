@@ -122,7 +122,7 @@ partidosAdminRouter.delete('/', async (_req: AuthRequest, res: Response): Promis
 partidosAdminRouter.put('/:id/resultado', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { golesLocal, golesVisitante } = req.body;
+    const { golesLocal, golesVisitante, ganadorNombre } = req.body;
 
     if (golesLocal === undefined || golesVisitante === undefined) {
       res.status(400).json({ error: 'Goles local y visitante son requeridos' });
@@ -135,9 +135,21 @@ partidosAdminRouter.put('/:id/resultado', async (req: AuthRequest, res: Response
       return;
     }
 
+    // Si es fase eliminatoria y hay empate, el ganadorNombre es obligatorio
+    if (partido.fase !== 'grupos' && golesLocal === golesVisitante && !ganadorNombre) {
+      res.status(400).json({ error: 'En fases eliminatorias, si hay empate se debe especificar un ganador (penales)' });
+      return;
+    }
+
+    // Determinar ganador automático si no hay empate
+    let finalGanador = ganadorNombre;
+    if (golesLocal > golesVisitante) finalGanador = partido.equipoLocal;
+    if (golesVisitante > golesLocal) finalGanador = partido.equipoVisitante;
+
     await partido.update({
       golesLocal,
       golesVisitante,
+      ganadorNombre: finalGanador,
       estado: 'finalizado',
     });
 
@@ -151,13 +163,25 @@ partidosAdminRouter.put('/:id/resultado', async (req: AuthRequest, res: Response
   }
 });
 
-partidosAdminRouter.post('/cerrar-grupos', async (_req: AuthRequest, res: Response): Promise<void> => {
+partidosAdminRouter.post('/cerrar-fase', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { cerrarFaseGrupos } = await import('../services/torneo.service');
-    await cerrarFaseGrupos();
-    res.json({ mensaje: 'Fase de grupos cerrada y llaves de 16vos generadas exitosamente.' });
+    const { fase } = req.body;
+    if (!fase) {
+      res.status(400).json({ error: 'La fase es requerida' });
+      return;
+    }
+
+    const { cerrarFaseEliminatoria, cerrarFaseGrupos } = await import('../services/torneo.service');
+    
+    if (fase === 'grupos') {
+      await cerrarFaseGrupos();
+    } else {
+      await cerrarFaseEliminatoria(fase);
+    }
+
+    res.json({ mensaje: `Fase ${fase} cerrada y equipos avanzados exitosamente.` });
   } catch (error: any) {
-    console.error('Error al cerrar fase de grupos:', error);
+    console.error(`Error al cerrar fase ${req.body.fase}:`, error);
     res.status(500).json({ error: error.message || 'Error interno del servidor' });
   }
 });

@@ -22,7 +22,13 @@ export async function eliminarFixture(): Promise<{ mensaje: string }> {
 export async function cargarResultado(
   id: number,
   golesLocal: number,
-  golesVisitante: number
+  golesVisitante: number,
+  ganadorNombre?: string
 ): Promise<void> {
-  await apiClient.put(`/admin/partidos/${id}/resultado`, { golesLocal, golesVisitante });
+  await apiClient.put(`/admin/partidos/${id}/resultado`, { golesLocal, golesVisitante, ganadorNombre });
+}
+
+export async function cerrarFase(fase: string): Promise<{ mensaje: string }> {
+  const { data } = await apiClient.post('/admin/partidos/cerrar-fase', { fase });
+  return data;
 }

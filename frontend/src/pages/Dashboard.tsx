@@ -3,7 +3,8 @@ import { useAuth } from '../contexts/useAuth';
 import { listarPartidos } from '../api/partidos';
 import { obtenerMisPronosticos, guardarPronostico } from '../api/pronosticos';
 import PartidoCard from '../components/PartidoCard';
-import TablaGrupo, { EquipoPosicion } from '../components/TablaGrupo';
+import TablaGrupo from '../components/TablaGrupo';
+import type { EquipoPosicion } from '../components/TablaGrupo';
 import type { Partido, Pronostico } from '../types';
 
 export default function Dashboard() {

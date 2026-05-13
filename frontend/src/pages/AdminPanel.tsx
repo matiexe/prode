@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { listarUsuarios, crearUsuario, desactivarUsuario } from '../api/usuarios';
-import { listarPartidos, generarFixture, eliminarFixture, cargarResultado } from '../api/partidos';
+import { listarPartidos, generarFixture, eliminarFixture, cargarResultado, cerrarFase } from '../api/partidos';
 import { obtenerConfiguracion, actualizarConfiguracion } from '../api/configuracion';
 import { getFlagUrl, getFlagSrcset } from '../utils/flags';
 import FormUsuario from '../components/FormUsuario';
@@ -27,7 +27,7 @@ export default function AdminPanel() {
   const [mensaje, setMensaje] = useState('');
   const [generando, setGenerando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
-  const [cerrandoGrupos, setCerrandoGrupos] = useState(false);
+  const [cerrandoFase, setCerrandoFase] = useState(false);
 
   useEffect(() => {
     if (!usuario) return;
@@ -57,19 +57,20 @@ export default function AdminPanel() {
     } catch (err) { console.error(err); }
   };
 
-  const handleCerrarGrupos = async () => {
-    if (!window.confirm('¿Estás seguro de cerrar la fase de grupos? Esto generará automáticamente los emparejamientos de 16vos de final basados en las posiciones actuales.')) return;
+  const handleCerrarFase = async () => {
+    const label = faseFiltro === 'grupos' ? 'Fase de Grupos' : faseFiltro;
+    if (!window.confirm(`¿Estás seguro de cerrar la ${label}? Esto avanzará automáticamente a los ganadores a la siguiente fase.`)) return;
     
-    setCerrandoGrupos(true);
+    setCerrandoFase(true);
     setMensaje('');
     try {
-      const res = await apiClient.post('/admin/partidos/cerrar-grupos');
-      setMensaje(res.data.mensaje);
+      const res = await cerrarFase(faseFiltro);
+      setMensaje(res.mensaje);
       if (tab === 'cargar') fetchPartidos();
     } catch (err: any) {
-      setMensaje(err.response?.data?.error || 'Error al cerrar fase de grupos');
+      setMensaje(err.response?.data?.error || 'Error al cerrar fase');
     } finally {
-      setCerrandoGrupos(false);
+      setCerrandoFase(false);
     }
   };
 
@@ -113,8 +114,8 @@ export default function AdminPanel() {
     }
   };
 
-  const handleCargarResultado = async (id: number, local: number, visitante: number) => {
-    await cargarResultado(id, local, visitante);
+  const handleCargarResultado = async (id: number, local: number, visitante: number, ganadorNombre?: string) => {
+    await cargarResultado(id, local, visitante, ganadorNombre);
     fetchPartidos();
   };
 
@@ -194,9 +195,16 @@ export default function AdminPanel() {
               <button className="btn-primary" onClick={handleGenerarFixture} disabled={generando}>
                 {generando ? 'Generando...' : 'Generar fixture'}
               </button>
-              <button className="btn-secondary" onClick={handleCerrarGrupos} disabled={cerrandoGrupos} style={{ background: 'var(--tertiary-container)', color: 'var(--on-tertiary-container)' }}>
-                {cerrandoGrupos ? 'Cerrando...' : '🏆 Cerrar fase de grupos'}
-              </button>
+              {faseFiltro !== 'final' && faseFiltro !== '3er_puesto' && (
+                <button 
+                  className="btn-secondary" 
+                  onClick={handleCerrarFase} 
+                  disabled={cerrandoFase} 
+                  style={{ background: 'var(--tertiary-container)', color: 'var(--on-tertiary-container)' }}
+                >
+                  {cerrandoFase ? 'Cerrando...' : `🏆 Cerrar ${faseFiltro === 'grupos' ? 'fase de grupos' : faseFiltro}`}
+                </button>
+              )}
               <button className="btn-danger" onClick={handleEliminarFixture} disabled={eliminando}>
                 {eliminando ? 'Eliminando...' : 'Borrar fixture'}
               </button>

@@ -65,7 +65,6 @@ export async function calcularTablaGrupo(fase: string, grupo: string): Promise<E
     visit.dg = visit.gf - visit.gc;
   }
 
-  // Ordenar por Puntos, luego Diferencia de Gol, luego Goles a Favor
   return Object.values(tabla).sort((a, b) => {
     if (b.pts !== a.pts) return b.pts - a.pts;
     if (b.dg !== a.dg) return b.dg - a.dg;
@@ -105,20 +104,15 @@ export async function obtenerClasificados16vos(): Promise<{
 export async function cerrarFaseGrupos(): Promise<void> {
   const { primeros, segundos, mejoresTerceros } = await obtenerClasificados16vos();
   
-  // Buscar los partidos de 16vos que están "Por definir"
   const partidos16vos = await Partido.findAll({
     where: { fase: '16vos' },
-    order: [['fechaHora', 'ASC']]
+    order: [['fechaHora', 'ASC'], ['id', 'ASC']]
   });
 
   if (partidos16vos.length < 16) {
     throw new Error('No se han generado los 16 partidos de 16vos de final.');
   }
 
-  /**
-   * Definición oficial de llaves Mundial 2026 (Partidos 73-88)
-   * Simplificamos la asignación de terceros para asegurar que los 8 mejores tengan lugar
-   */
   const llaves = [
     { local: segundos['A'], visite: segundos['B'] }, // P73
     { local: primeros['A'], visite: mejoresTerceros[0] }, // P74
@@ -133,7 +127,7 @@ export async function cerrarFaseGrupos(): Promise<void> {
     { local: primeros['I'], visite: mejoresTerceros[6] }, // P83
     { local: primeros['J'], visite: segundos['L'] }, // P84
     { local: primeros['K'], visite: mejoresTerceros[7] }, // P85
-    { local: primeros['L'], visite: segundos['N'] || segundos['G'] }, // P86 (Ajustado)
+    { local: primeros['L'], visite: segundos['G'] }, // P86 (Simplificado)
     { local: segundos['G'], visite: segundos['I'] }, // P87
     { local: segundos['E'], visite: segundos['H'] }, // P88
   ];
@@ -146,3 +140,68 @@ export async function cerrarFaseGrupos(): Promise<void> {
   }
 }
 
+export async function cerrarFaseEliminatoria(faseActual: string): Promise<void> {
+  const fasesOrdenadas = ['grupos', '16vos', '8vos', 'cuartos', 'semis', 'final'];
+  const currentIndex = fasesOrdenadas.indexOf(faseActual);
+  
+  if (currentIndex === -1 || currentIndex === fasesOrdenadas.length - 1) {
+    throw new Error('Fase invalida para cerrar o es la final.');
+  }
+
+  const faseSiguiente = fasesOrdenadas[currentIndex + 1];
+
+  const partidosActuales = await Partido.findAll({
+    where: { fase: faseActual },
+    order: [['fechaHora', 'ASC'], ['id', 'ASC']]
+  });
+
+  if (partidosActuales.some(p => p.estado !== 'finalizado')) {
+    throw new Error(`Aun hay partidos pendientes en la fase ${faseActual}.`);
+  }
+
+  const ganadores = partidosActuales.map(p => p.ganadorNombre).filter(Boolean) as string[];
+
+  const partidosSiguientes = await Partido.findAll({
+    where: { fase: faseSiguiente },
+    order: [['fechaHora', 'ASC'], ['id', 'ASC']]
+  });
+
+  if (partidosSiguientes.length === 0) {
+    throw new Error(`No hay partidos generados para la fase ${faseSiguiente}.`);
+  }
+
+  if (faseActual === 'semis') {
+    const partido3erPuesto = await Partido.findOne({ where: { fase: '3er_puesto' } });
+    const partidoFinal = await Partido.findOne({ where: { fase: 'final' } });
+
+    if (!partidoFinal || !partido3erPuesto) {
+      throw new Error('No se encontro el partido de la Final o del 3er Puesto.');
+    }
+
+    const perdedores = partidosActuales.map(p => 
+      p.ganadorNombre === p.equipoLocal ? p.equipoVisitante : p.equipoLocal
+    );
+
+    await partido3erPuesto.update({
+      equipoLocal: perdedores[0],
+      equipoVisitante: perdedores[1]
+    });
+
+    await partidoFinal.update({
+      equipoLocal: ganadores[0],
+      equipoVisitante: ganadores[1]
+    });
+
+    return;
+  }
+
+  for (let i = 0; i < partidosSiguientes.length; i++) {
+    const local = ganadores[i * 2];
+    const visitante = ganadores[i * 2 + 1];
+
+    await partidosSiguientes[i].update({
+      equipoLocal: local || 'Por definir',
+      equipoVisitante: visitante || 'Por definir'
+    });
+  }
+}

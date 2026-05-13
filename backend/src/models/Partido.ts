@@ -10,12 +10,13 @@ export interface PartidoAttributes {
   fechaHora: Date;
   golesLocal: number | null;
   golesVisitante: number | null;
+  ganadorNombre: string | null;
   estado: 'pendiente' | 'jugando' | 'finalizado';
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-export interface PartidoCreationAttributes extends Optional<PartidoAttributes, 'id' | 'golesLocal' | 'golesVisitante' | 'estado'> {}
+export interface PartidoCreationAttributes extends Optional<PartidoAttributes, 'id' | 'golesLocal' | 'golesVisitante' | 'ganadorNombre' | 'estado'> {}
 
 export class Partido extends Model<PartidoAttributes, PartidoCreationAttributes> implements PartidoAttributes {
   public id!: number;
@@ -26,6 +27,7 @@ export class Partido extends Model<PartidoAttributes, PartidoCreationAttributes>
   public fechaHora!: Date;
   public golesLocal!: number | null;
   public golesVisitante!: number | null;
+  public ganadorNombre!: string | null;
   public estado!: 'pendiente' | 'jugando' | 'finalizado';
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -67,6 +69,10 @@ Partido.init(
     },
     golesVisitante: {
       type: DataTypes.TINYINT,
+      allowNull: true,
+    },
+    ganadorNombre: {
+      type: DataTypes.STRING(100),
       allowNull: true,
     },
     estado: {
