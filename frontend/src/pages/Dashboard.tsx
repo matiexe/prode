@@ -33,11 +33,14 @@ export default function Dashboard() {
     if (!usuario) return;
     const fetchData = async () => {
       setLoading(true);
+      console.log(`[DEBUG DASHBOARD] Solicitando partidos para fase: ${fase}, grupo: ${grupo}`);
       try {
         const [partidosData, pronosticosData] = await Promise.all([
           listarPartidos(fase, grupo || undefined),
           obtenerMisPronosticos(),
         ]);
+        console.log(`[DEBUG DASHBOARD] Partidos recibidos: ${partidosData.length}`);
+        console.log(`[DEBUG DASHBOARD] Primer partido (si existe):`, partidosData[0]);
         setPartidos(partidosData);
         setPronosticos(pronosticosData);
       } catch (err) {
