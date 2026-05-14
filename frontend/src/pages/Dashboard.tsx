@@ -320,7 +320,7 @@ export default function Dashboard() {
                   const miProno = getPronostico(partido.id);
                   return (
                     <PartidoCard
-                      key={`${partido.id}-${version}`}
+                      key={partido.id}
                       partido={partido}
                       golesLocal={miProno?.local}
                       golesVisitante={miProno?.visitante}
