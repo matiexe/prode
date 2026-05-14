@@ -76,7 +76,7 @@ export default function RankingPage() {
   const rest = ranking.filter((_, i) => i >= 3);
 
   return (
-    <div className="ranking-page">
+    <div className="page ranking-page" style={{ maxWidth: '1440px', margin: '0 auto' }}>
       <div className="ranking-hero">
         <div className="hero-left">
           <div className="ranking-section">
@@ -167,9 +167,13 @@ export default function RankingPage() {
           </div>
 
           {usuario ? (
-            <div className="dashboard-link-card" style={{ background: 'rgba(177, 198, 249, 0.1)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(177, 198, 249, 0.2)', textAlign: 'center' }}>
-              <h3 style={{ marginBottom: '1rem' }}>Ya estas participando</h3>
-              <Link to="/dashboard" className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none' }}>
+            <div className="dashboard-link-card glass-card" style={{ padding: '2.5rem', borderRadius: '16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--primary)' }}>account_circle</span>
+              <div>
+                <h3 style={{ fontFamily: 'Anybody', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Hola, {usuario.nombre}</h3>
+                <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem' }}>Ya puedes empezar a cargar tus pronósticos.</p>
+              </div>
+              <Link to={usuario.rol === 'admin' ? '/admin' : '/dashboard'} className="btn-primary" style={{ width: '100%', textDecoration: 'none', marginTop: '0.5rem' }}>
                 Ir a mi Dashboard
               </Link>
             </div>

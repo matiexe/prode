@@ -20,31 +20,26 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-inner">
-        <Link to="/" className="nav-logo">
-          <span className="material-symbols-outlined nav-icon" style={{ fontVariationSettings: "'FILL' 1" }}>trophy</span>
-          PRODE BSC WC2026
-        </Link>
-        <div className="nav-links">
-          {usuario ? (
-            <>
+        {usuario ? (
+          <>
+            <Link to="/" className="nav-logo">
+              <span className="material-symbols-outlined nav-icon" style={{ fontVariationSettings: "'FILL' 1" }}>trophy</span>
+              PRODE BSC WC2026
+            </Link>
+            <div className="nav-links">
               <Link to="/ranking" className={isActive('/ranking')}>RANKING</Link>
               <Link to={usuario.rol === 'admin' ? '/admin' : '/dashboard'} className={isActive(usuario.rol === 'admin' ? '/admin' : '/dashboard')}>
                 {usuario.rol === 'admin' ? 'ADMIN' : 'DASHBOARD'}
               </Link>
-            </>
-          ) : (
-            <>
-              <Link to="/" className={isActive('/')}>INICIO</Link>
-              <Link to="/ranking" className={isActive('/ranking')}>RANKING</Link>
-            </>
-          )}
-        </div>
-        {usuario ? (
-          <button onClick={handleLogout} className="nav-btn" style={{ background: 'transparent', border: '1px solid var(--error)', color: 'var(--error)' }}>
-            CERRAR SESION
-          </button>
+            </div>
+            <button onClick={handleLogout} className="nav-btn" style={{ background: 'transparent', border: '1px solid var(--error)', color: 'var(--error)' }}>
+              CERRAR SESION
+            </button>
+          </>
         ) : (
-          <Link to="/login" className="nav-btn">LOGIN</Link>
+          <div style={{ marginLeft: 'auto' }}>
+            <Link to="/login" className="nav-btn">LOGIN</Link>
+          </div>
         )}
       </div>
     </nav>
