@@ -84,7 +84,7 @@ body::after {
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 50;
+  z-index: 2000;
   background: rgba(16, 20, 21, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -94,9 +94,10 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem clamp(16px, 5vw, 64px);
+  padding: 0.75rem clamp(16px, 5vw, 64px);
   max-width: 1440px;
   margin: 0 auto;
+  height: 72px;
 }
 
 .nav-logo {
@@ -104,7 +105,7 @@ body::after {
   align-items: center;
   gap: 8px;
   font-family: 'Anybody', sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.04em;
   background: linear-gradient(135deg, #b1c6f9 0%, #00e476 100%);
@@ -161,7 +162,7 @@ body::after {
   height: 100vh;
   background: var(--surface-container-low);
   border-right: 1px solid var(--border);
-  z-index: 1000;
+  z-index: 3000;
   transform: translateX(-100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -177,7 +178,7 @@ body::after {
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
-  z-index: 999;
+  z-index: 2999;
   animation: fade-in 0.2s ease-out;
 }
 
@@ -253,7 +254,7 @@ body::after {
 }
 
 .main-content {
-  padding-top: 80px;
+  padding-top: 72px;
   position: relative;
   z-index: 1;
 }
@@ -263,6 +264,8 @@ body::after {
   margin: 0 auto;
   padding: 2rem clamp(16px, 5vw, 64px);
 }
+
+
 
 .page h1 {
   font-family: 'Anybody', sans-serif;
@@ -517,7 +520,7 @@ body::after {
   top: 5rem;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 300;
+  z-index: 6000;
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius);
   font-family: 'Anybody', sans-serif;
@@ -527,6 +530,7 @@ body::after {
   animation: toast-in 0.3s ease-out;
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
+
 
 .toast.success {
   background: rgba(0, 228, 118, 0.12);
@@ -1841,8 +1845,9 @@ body::after {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 200;
+  z-index: 5000;
 }
+
 
 .modal-content {
   background: rgba(29, 32, 34, 0.95);
@@ -1885,7 +1890,7 @@ body::after {
   margin-bottom: 1rem;
 }
 
-/* Admin Panel Sidebar & Layout */
+/* Admin Panel Layout & Sidebar */
 .admin-layout {
   display: flex;
   min-height: calc(100vh - 80px);
@@ -1894,57 +1899,71 @@ body::after {
 }
 
 .admin-sidebar {
-  position: sticky;
-  top: 80px;
+  width: 280px;
+  background: var(--surface-container-low);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
   height: calc(100vh - 80px);
   z-index: 100;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.admin-sidebar-toggle {
+  display: none !important; /* Hidden on desktop */
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface-container-high);
+  border: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  color: var(--on-surface);
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  font-family: 'Anybody', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 @media (max-width: 1023px) {
   .admin-sidebar {
     position: fixed;
+    top: 80px;
     transform: translateX(-100%);
-    width: 280px; /* Fixed width for the sliding part */
   }
   
   .admin-sidebar.open {
     transform: translateX(0);
   }
 
-  .sidebar-toggle {
+  .admin-sidebar-toggle {
     display: flex !important;
   }
-  
-  .admin-main {
-    padding-top: 1rem !important;
-    width: 100% !important; /* Force full width on mobile */
-  }
 
-  .admin-header h1 {
-    font-size: 1.5rem !important; /* Smaller titles on mobile */
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 90;
   }
 }
 
 @media (min-width: 1024px) {
   .admin-sidebar {
+    position: sticky;
+    top: 80px;
     transform: translateX(0) !important;
   }
-  
-  .sidebar-overlay {
-    display: none !important;
-  }
-}
-
-.sidebar-item:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.03) !important;
-  color: var(--on-surface) !important;
 }
 
 .admin-main {
   flex: 1;
   min-width: 0;
 }
+
 
 /* ---- Skeleton Animation ---- */
 @keyframes skeleton-loading {
