@@ -1892,10 +1892,18 @@ body::after {
 
 /* Admin Panel Layout & Sidebar */
 .admin-layout {
-  display: flex;
+  display: flex; /* Fallback */
   min-height: calc(100vh - 72px);
   background: var(--surface-container-lowest);
   position: relative;
+}
+
+@media (min-width: 1024px) {
+  .admin-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    align-items: start;
+  }
 }
 
 .admin-sidebar {
@@ -1931,8 +1939,10 @@ body::after {
   .admin-sidebar {
     position: fixed;
     top: 72px;
+    left: 0;
     transform: translateX(-100%);
     height: calc(100vh - 72px);
+    z-index: 2000; /* Higher than navbar if needed on mobile */
   }
   
   .admin-sidebar.open {
@@ -1948,7 +1958,7 @@ body::after {
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
-    z-index: 90;
+    z-index: 1999;
   }
 }
 
@@ -1956,7 +1966,15 @@ body::after {
   .admin-sidebar {
     position: sticky;
     top: 72px;
-    transform: translateX(0) !important;
+    left: 0;
+    transform: none !important;
+    height: calc(100vh - 72px);
+    border-right: 1px solid var(--border);
+  }
+
+  .admin-main {
+    min-width: 0;
+    width: 100%;
   }
 }
 
@@ -1965,6 +1983,7 @@ body::after {
   min-width: 0;
   position: relative;
 }
+
 
 
 
