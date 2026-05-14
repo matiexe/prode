@@ -92,10 +92,6 @@ export default function LoginPage() {
             </button>
           </form>
         )}
-
-        <div className="otp-info">
-          <small>En desarrollo: revisa la consola del backend para ver el codigo OTP</small>
-        </div>
       </div>
     </div>
   );

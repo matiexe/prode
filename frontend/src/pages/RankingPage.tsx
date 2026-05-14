@@ -179,64 +179,58 @@ export default function RankingPage() {
             </div>
           ) : (
           <div className="login-card-inline">
-            <div className="login-card-inner">
-              <h2>Acceso al Sistema</h2>
-              <p className="login-subtitle">Ingresa para gestionar tus pronosticos.</p>
+          <div className="login-card-inner">
+          <h2>Acceso al Sistema</h2>
+          <p className="login-subtitle">Ingresa para gestionar tus pronosticos.</p>
 
-              {loginError && <div className="error-message">{loginError}</div>}
+          {loginError && <div className="error-message">{loginError}</div>}
 
-              {step === 'email' ? (
-                <form onSubmit={handleSolicitarOTP}>
-                  <div className="form-group">
-                    <label>Correo Electronico</label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="usuario@mundial.com"
-                      required
-                      autoFocus
-                    />
-                  </div>
-                  <button type="submit" className="login-submit-btn" disabled={loginLoading}>
-                    {loginLoading ? 'Enviando...' : 'Enviar codigo'}
-                  </button>
-                </form>
-              ) : (
-                <form onSubmit={handleVerificarOTP}>
-                  <div className="form-group">
-                    <label>Codigo de verificacion</label>
-                    <p className="hint">Ingresa el codigo enviado a {email}</p>
-                    <input
-                      type="text"
-                      value={codigo}
-                      onChange={(e) => setCodigo(e.target.value)}
-                      placeholder="123456"
-                      maxLength={6}
-                      required
-                      autoFocus
-                    />
-                  </div>
-                  <button type="submit" className="login-submit-btn" disabled={loginLoading}>
-                    {loginLoading ? 'Verificando...' : 'Ingresar'}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-link"
-                    onClick={() => { setStep('email'); setCodigo(''); setLoginError(''); }}
-                  >
-                    Cambiar email
-                  </button>
-                </form>
-              )}
-
-              <div className="otp-hint">
-                <small>En desarrollo: revisa la consola del backend para ver el codigo OTP</small>
+          {step === 'email' ? (
+            <form onSubmit={handleSolicitarOTP}>
+              <div className="form-group">
+                <label>Correo Electronico</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="usuario@mundial.com"
+                  required
+                  autoFocus
+                />
               </div>
-
-            </div>
-          </div>
+              <button type="submit" className="login-submit-btn" disabled={loginLoading}>
+                {loginLoading ? 'Enviando...' : 'Enviar codigo'}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerificarOTP}>
+              <div className="form-group">
+                <label>Codigo de verificacion</label>
+                <p className="hint">Ingresa el codigo enviado a {email}</p>
+                <input
+                  type="text"
+                  value={codigo}
+                  onChange={(e) => setCodigo(e.target.value)}
+                  placeholder="123456"
+                  maxLength={6}
+                  required
+                  autoFocus
+                />
+              </div>
+              <button type="submit" className="login-submit-btn" disabled={loginLoading}>
+                {loginLoading ? 'Verificando...' : 'Ingresar'}
+              </button>
+              <button
+                type="button"
+                className="btn-link"
+                onClick={() => { setStep('email'); setCodigo(''); setLoginError(''); }}
+              >
+                Cambiar email
+              </button>
+            </form>
           )}
+          </div>
+          </div>          )}
         </div>
       </div>
     </div>
