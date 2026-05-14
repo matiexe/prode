@@ -88,7 +88,22 @@ export default function RankingPage() {
             </div>
 
             {loading ? (
-              <div className="loading">Cargando datos...</div>
+              <>
+                <div className="top3-grid">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="top3-card skeleton-card" style={{ height: '220px' }}>
+                      <div className="skeleton skeleton-circle" style={{ width: '60px', height: '60px', marginBottom: '1rem' }}></div>
+                      <div className="skeleton" style={{ width: '80%', height: '20px', marginBottom: '0.5rem' }}></div>
+                      <div className="skeleton" style={{ width: '60%', height: '16px' }}></div>
+                    </div>
+                  ))}
+                </div>
+                <div className="ranking-table-container glass-card" style={{ padding: '1rem' }}>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="skeleton" style={{ height: '50px', marginBottom: '0.5rem', opacity: 0.3 }}></div>
+                  ))}
+                </div>
+              </>
             ) : ranking.length === 0 ? (
               <div className="empty">Aun no hay puntajes registrados</div>
             ) : (

@@ -17,21 +17,12 @@ router.post('/solicitar-otp', async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const totalUsers = await Usuario.count();
-    const allUsers = await Usuario.findAll({ attributes: ['email', 'activo'] });
-    console.log(`[DEBUG] Body recibido: ${JSON.stringify(req.body)}`);
-    console.log(`[DEBUG] Intentando buscar email: "${email}". Usuarios totales en DB: ${totalUsers}`);
-    console.log(`[DEBUG] Usuarios existentes en DB: ${JSON.stringify(allUsers)}`);
-
-    // Búsqueda insensible a mayúsculas/minúsculas para Postgres
     const usuario = await Usuario.findOne({ 
       where: { 
         email: { [Op.iLike]: email.trim() }, 
         activo: true 
       } 
     });
-
-    console.log(`[DEBUG] Resultado de búsqueda: ${usuario ? 'Encontrado: ' + usuario.email : 'No encontrado'}`);
 
     if (!usuario) {
       res.status(404).json({ error: 'Usuario no encontrado. Contacta al administrador.' });
@@ -49,7 +40,7 @@ router.post('/solicitar-otp', async (req: Request, res: Response): Promise<void>
       if (process.env.RESEND_API_KEY) {
         await sendOTP(email, codigo);
       } else {
-        console.warn(`[AUTH] Resend no configurado. Código para ${email}: ${codigo} (O usa 123456)`);
+        console.warn(`[AUTH] Resend no configurado. Email: ${email} (Código mágico disponible)`);
       }
     } catch (mailErr) {
       console.error('[AUTH] Error al enviar email, pero se permite continuar para simulación:', mailErr);

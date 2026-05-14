@@ -1805,6 +1805,47 @@ body::after {
   margin-bottom: 1rem;
 }
 
+/* ---- Skeleton Animation ---- */
+@keyframes skeleton-loading {
+  0% { background-color: var(--surface-container-high); }
+  100% { background-color: var(--surface-container-highest); }
+}
+
+.skeleton {
+  animation: skeleton-loading 1s linear infinite alternate;
+  border-radius: 8px;
+}
+
+.skeleton-text {
+  height: 1rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-card {
+  height: 160px;
+  width: 100%;
+  border-radius: 16px;
+  background: var(--surface-container);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skeleton-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.skeleton-btn {
+  height: 40px;
+  width: 100%;
+  border-radius: 8px;
+}
+
 /* ---- Footer ---- */
 .app-footer {
   width: 100%;

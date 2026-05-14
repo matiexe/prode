@@ -33,14 +33,11 @@ export default function Dashboard() {
     if (!usuario) return;
     const fetchData = async () => {
       setLoading(true);
-      console.log(`[DEBUG DASHBOARD] Solicitando partidos para fase: ${fase}, grupo: ${grupo}`);
       try {
         const [partidosData, pronosticosData] = await Promise.all([
           listarPartidos(fase, grupo || undefined),
           obtenerMisPronosticos(),
         ]);
-        console.log(`[DEBUG DASHBOARD] Partidos recibidos: ${partidosData.length}`);
-        console.log(`[DEBUG DASHBOARD] Primer partido (si existe):`, partidosData[0]);
         setPartidos(partidosData);
         setPronosticos(pronosticosData);
       } catch (err) {
@@ -283,7 +280,22 @@ export default function Dashboard() {
           )}
 
           {loading ? (
-            <div className="loading">Cargando partidos...</div>
+            <div className="partidos-grid">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="skeleton-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div className="skeleton" style={{ width: '60px', height: '18px' }}></div>
+                    <div className="skeleton" style={{ width: '80px', height: '18px' }}></div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+                    <div className="skeleton" style={{ width: '100px', height: '24px' }}></div>
+                    <div className="skeleton" style={{ width: '40px', height: '32px' }}></div>
+                    <div className="skeleton" style={{ width: '100px', height: '24px' }}></div>
+                  </div>
+                  <div className="skeleton skeleton-btn" style={{ marginTop: 'auto' }}></div>
+                </div>
+              ))}
+            </div>
           ) : partidosAMostrar.length === 0 ? (
             <div className="empty glass-card" style={{ borderRadius: '16px' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>event_busy</span>
