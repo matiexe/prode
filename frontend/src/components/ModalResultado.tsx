@@ -57,7 +57,7 @@ export default function ModalResultado({ partido, onGuardar, onClose }: ModalRes
         </div>
         
         <p className="modal-partido" style={{ fontWeight: 700, textAlign: 'center', fontSize: '1.2rem', marginBottom: '2rem' }}>
-          {partido.equipoLocal} <span style={{ color: var(--primary), margin: '0 0.5rem' }}>VS</span> {partido.equipoVisitante}
+          {partido.equipoLocal} <span style={{ color: 'var(--primary)', margin: '0 0.5rem' }}>VS</span> {partido.equipoVisitante}
         </p>
 
         {error && <div className="error-message" style={{ marginBottom: '1.5rem' }}>{error}</div>}
