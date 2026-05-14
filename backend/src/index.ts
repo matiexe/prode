@@ -43,10 +43,27 @@ let dbInitializationPromise: Promise<void> | null = null;
 async function initializeDb() {
   try {
     await testConnection();
-    // Nota: sequelize.sync() se mantiene para simplicidad en este prototipo,
-    // asegurando que las tablas existan en Vercel Postgres.
-    await sequelize.sync();
-    console.log('Modelos sincronizados con la base de datos.');
+    
+    // Forzamos alter: true para que agregue columnas nuevas como 'ganador_nombre'
+    // sin borrar los datos existentes.
+    await sequelize.sync({ alter: true });
+    console.log('Modelos sincronizados y esquema actualizado con la base de datos.');
+
+    // Verificación manual de la columna para el log
+    try {
+      const [columnCheck]: any = await sequelize.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'partidos' AND column_name = 'ganador_nombre'
+      `);
+      if (columnCheck.length > 0) {
+        console.log('[DEBUG DB] Columna "ganador_nombre" verificada exitosamente.');
+      } else {
+        console.error('[DEBUG DB] ADVERTENCIA: La columna "ganador_nombre" no se encontró tras el sync.');
+      }
+    } catch (e) {
+      console.error('[DEBUG DB] Error al verificar columna:', e);
+    }
 
     const configCount = await ConfiguracionPuntos.count();
     if (configCount === 0) {
