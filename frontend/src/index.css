@@ -1901,14 +1901,11 @@ body::after {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sidebar-toggle {
-  display: none !important; /* Hidden on desktop */
-}
-
 @media (max-width: 1023px) {
   .admin-sidebar {
     position: fixed;
     transform: translateX(-100%);
+    width: 280px; /* Fixed width for the sliding part */
   }
   
   .admin-sidebar.open {
@@ -1921,6 +1918,11 @@ body::after {
   
   .admin-main {
     padding-top: 1rem !important;
+    width: 100% !important; /* Force full width on mobile */
+  }
+
+  .admin-header h1 {
+    font-size: 1.5rem !important; /* Smaller titles on mobile */
   }
 }
 

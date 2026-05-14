@@ -180,11 +180,11 @@ export default function AdminPanel() {
         borderRight: '1px solid var(--border)',
         display: 'flex',
         flexDirection: 'column',
-        position: sidebarOpen ? 'fixed' : 'sticky',
+        position: 'fixed', // Always fixed to prevent layout shift on mobile
         top: '80px',
         height: 'calc(100vh - 80px)',
         zIndex: 100,
-        transition: 'transform 0.3s ease',
+        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
         flexShrink: 0
       }}>
