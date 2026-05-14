@@ -8,7 +8,10 @@ Este documento detalla los pasos críticos y consideraciones para mover el siste
 - [ ] **Resend API Key:** Verificar que la API Key de producción en Resend tenga el dominio verificado para evitar que los OTP caigan en SPAM.
 
 ## 2. 🗄️ Base de Datos (Postgres)
-- [ ] **Migración de Esquema:** Ejecutar el `ALTER TABLE` manual (o asegurar que el sync corra una vez) para tener la columna `ganador_nombre`.
+- [ ] **Migración de Esquema:** Ejecutar el `ALTER TABLE` manual en la consola de Vercel para asegurar la columna `ganador_nombre`:
+  ```sql
+  ALTER TABLE "partidos" ADD COLUMN "ganador_nombre" VARCHAR(255);
+  ```
 - [ ] **Backup Plan:** Configurar backups automáticos en Vercel/Neon.
 - [ ] **Limpieza de Datos de Prueba:** Antes del lanzamiento, resetear las tablas `pronosticos`, `partidos` y `usuarios` (excepto admins) para empezar con el contador en cero.
 
