@@ -125,10 +125,90 @@ body::after {
   gap: 2rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .nav-links {
     display: flex;
   }
+}
+
+.mobile-menu-btn {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface-container-high);
+  border: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  color: var(--on-surface);
+  cursor: pointer;
+  font-family: 'Anybody', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+@media (min-width: 1024px) {
+  .mobile-menu-btn {
+    display: none !important;
+  }
+}
+
+.global-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--surface-container-low);
+  border-right: 1px solid var(--border);
+  z-index: 1000;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.global-sidebar.open {
+  transform: translateX(0);
+}
+
+.global-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fade-in 0.2s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  color: var(--on-surface-variant);
+  text-decoration: none;
+  font-family: 'Anybody', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 12px;
+  margin: 0.25rem 1rem;
+  transition: all 0.2s;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--on-surface);
+}
+
+.sidebar-link.active {
+  background: rgba(177, 198, 249, 0.1);
+  color: var(--primary);
 }
 
 .nav-links a {
