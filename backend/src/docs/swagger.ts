@@ -78,13 +78,14 @@ const options: swaggerJsdoc.Options = {
           type: 'object',
           properties: {
             id: { type: 'integer' },
-            fase: { type: 'string', enum: ['grupos', '16vos', '8vos', 'cuartos', 'semis', 'final'] },
+            fase: { type: 'string', enum: ['grupos', '16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final'] },
             grupo: { type: 'string', nullable: true },
             equipoLocal: { type: 'string' },
             equipoVisitante: { type: 'string' },
             fechaHora: { type: 'string', format: 'date-time' },
             golesLocal: { type: 'integer', nullable: true },
             golesVisitante: { type: 'integer', nullable: true },
+            ganadorNombre: { type: 'string', nullable: true, description: 'Nombre del equipo que avanza (útil en eliminatorias)' },
             estado: { type: 'string', enum: ['pendiente', 'jugando', 'finalizado'] },
           },
         },
@@ -94,6 +95,14 @@ const options: swaggerJsdoc.Options = {
           properties: {
             golesLocal: { type: 'integer', minimum: 0 },
             golesVisitante: { type: 'integer', minimum: 0 },
+            ganadorNombre: { type: 'string', description: 'Obligatorio en eliminatorias si hay empate' },
+          },
+        },
+        CerrarFaseRequest: {
+          type: 'object',
+          required: ['fase'],
+          properties: {
+            fase: { type: 'string', enum: ['grupos', '16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final'] },
           },
         },
         PronosticoRequest: {
@@ -219,7 +228,7 @@ const options: swaggerJsdoc.Options = {
           tags: ['Partidos'],
           summary: 'Listar partidos',
           parameters: [
-            { name: 'fase', in: 'query', schema: { type: 'string', enum: ['grupos', '16vos', '8vos', 'cuartos', 'semis', 'final'] } },
+            { name: 'fase', in: 'query', schema: { type: 'string', enum: ['grupos', '16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final'] } },
             { name: 'grupo', in: 'query', schema: { type: 'string' } },
           ],
           responses: { '200': { description: 'Lista de partidos', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Partido' } } } } } },
@@ -244,6 +253,21 @@ const options: swaggerJsdoc.Options = {
             content: { 'application/json': { schema: { $ref: '#/components/schemas/ResultadoRequest' } } },
           },
           responses: { '200': { description: 'Resultado guardado' } },
+        },
+      },
+      '/api/admin/partidos/cerrar-fase': {
+        post: {
+          tags: ['Partidos'],
+          summary: 'Cerrar una fase y avanzar equipos automáticamente',
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/CerrarFaseRequest' } } },
+          },
+          responses: {
+            '200': { description: 'Fase cerrada y equipos avanzados' },
+            '400': { description: 'Fase inválida o no completada' },
+          },
         },
       },
       '/api/pronosticos': {
