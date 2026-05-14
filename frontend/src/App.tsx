@@ -28,9 +28,10 @@ function Navbar() {
             </Link>
             <div className="nav-links">
               <Link to="/ranking" className={isActive('/ranking')}>RANKING</Link>
-              <Link to={usuario.rol === 'admin' ? '/admin' : '/dashboard'} className={isActive(usuario.rol === 'admin' ? '/admin' : '/dashboard')}>
-                {usuario.rol === 'admin' ? 'ADMIN' : 'DASHBOARD'}
-              </Link>
+              <Link to="/dashboard" className={isActive('/dashboard')}>DASHBOARD</Link>
+              {usuario.rol === 'admin' && (
+                <Link to="/admin" className={isActive('/admin')}>ADMIN</Link>
+              )}
             </div>
             <button onClick={handleLogout} className="nav-btn" style={{ background: 'transparent', border: '1px solid var(--error)', color: 'var(--error)' }}>
               CERRAR SESION
