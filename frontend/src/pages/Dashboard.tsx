@@ -197,7 +197,10 @@ export default function Dashboard() {
     (sum, p) => sum + (p.puntosObtenidos ?? 0), 0
   );
 
-  const partidosPendientes = partidos.filter(
+  // Filtros de visualización
+  const partidosAMostrar = partidos.sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime());
+  
+  const partidosPendientes = partidosAMostrar.filter(
     (p) => p.estado === 'pendiente' && new Date(p.fechaHora) > new Date()
   );
 
@@ -211,12 +214,12 @@ export default function Dashboard() {
     <div className="page dashboard">
       <div className="dashboard-header">
         <div>
-          <h1>Bienvenido, {usuario?.nombre}</h1>
-          <p className="subtitle">Tus pronosticos del Mundial 2026</p>
+          <h1>Hola, {usuario?.nombre}</h1>
+          <p className="subtitle">Gestiona tus pronósticos y sigue los resultados en vivo.</p>
         </div>
         <div className="puntos-resumen">
           <span className="puntos-total">{totalPuntos}</span>
-          <span className="puntos-label">puntos</span>
+          <span className="puntos-label">puntos totales</span>
         </div>
       </div>
 
@@ -228,24 +231,24 @@ export default function Dashboard() {
 
       {faltanPronosticar > 0 && (
         <div className="missing-banner">
-          <span className="material-symbols-outlined">how_to_reg</span>
+          <div className="hero-badge-dot" style={{ marginRight: '0.5rem' }}>
+            <span className="ping"></span>
+            <span className="static"></span>
+          </div>
           <span>
-            Te faltan <strong>{faltanPronosticar}</strong> pronostico{faltanPronosticar !== 1 ? 's' : ''} por completar
-            {grupo ? <> en el <strong>Grupo {grupo}</strong></> : <> en esta fase</>}
+            Tienes <strong>{faltanPronosticar}</strong> pronóstico{faltanPronosticar !== 1 ? 's' : ''} pendiente{faltanPronosticar !== 1 ? 's' : ''} por completar.
           </span>
         </div>
       )}
 
       {faltanPronosticar === 0 && partidosPendientes.length > 0 && (
         <div className="missing-banner done">
-          <span className="material-symbols-outlined">check_circle</span>
-          <span>
-            Completaste todos los pronosticos{grupo ? <> del <strong>Grupo {grupo}</strong></> : <> de esta fase</>}
-          </span>
+          <span className="material-symbols-outlined">verified</span>
+          <span>¡Todo listo! Has completado todos los pronósticos disponibles.</span>
         </div>
       )}
 
-      <div className="fase-tabs">
+      <nav className="fase-tabs">
         {fases.map((f) => (
           <button
             key={f}
@@ -260,17 +263,17 @@ export default function Dashboard() {
              f === '3er_puesto' ? '3er Puesto' : 'Final'}
           </button>
         ))}
-      </div>
+      </nav>
 
       <div className="dashboard-content" style={{ display: 'grid', gridTemplateColumns: fase === 'grupos' && grupo ? '1fr 320px' : '1fr', gap: '2rem' }}>
         <div className="dashboard-left">
           {fase === 'grupos' && (
-            <div className="grupo-filtro">
-              <label>Filtrar por grupo: </label>
-              <select value={grupo} onChange={(e) => setGrupo(e.target.value)}>
-                <option value="">Todos los grupos</option>
+            <div className="grupo-filtro glass-card" style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', width: 'fit-content' }}>
+              <label style={{ fontFamily: 'Anybody', fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--outline)' }}>Filtrar por grupo: </label>
+              <select value={grupo} onChange={(e) => setGrupo(e.target.value)} style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
+                <option value="" style={{ background: 'var(--surface-container-high)' }}>Todos los grupos</option>
                 {grupos.map((g) => (
-                  <option key={g} value={g}>Grupo {g}</option>
+                  <option key={g} value={g} style={{ background: 'var(--surface-container-high)' }}>Grupo {g}</option>
                 ))}
               </select>
             </div>
@@ -278,22 +281,27 @@ export default function Dashboard() {
 
           {loading ? (
             <div className="loading">Cargando partidos...</div>
-          ) : partidos.length === 0 ? (
-            <div className="empty">
-              No hay partidos disponibles para esta fase. El administrador debe generar el fixture.
+          ) : partidosAMostrar.length === 0 ? (
+            <div className="empty glass-card" style={{ borderRadius: '16px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>event_busy</span>
+              <p>No se encontraron partidos para esta selección.</p>
+              <small style={{ opacity: 0.5 }}>El administrador debe generar el fixture para la fase {fase}.</small>
             </div>
           ) : (
             <>
               {pendingCount > 0 && (
-                <div className="save-all-bar">
-                  <span>{pendingCount} pronostico{pendingCount !== 1 ? 's' : ''} pendiente{pendingCount !== 1 ? 's' : ''}</span>
+                <div className="save-all-bar glass-card" style={{ borderRadius: '12px', borderLeft: '4px solid var(--tertiary)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--tertiary)' }}>edit_notifications</span>
+                    <span>{pendingCount} pronóstico{pendingCount !== 1 ? 's' : ''} sin guardar</span>
+                  </div>
                   <button className="btn-save-all" onClick={handleGuardarTodos} disabled={savingAll}>
-                    {savingAll ? 'Guardando...' : `Guardar Todos (${pendingCount})`}
+                    {savingAll ? 'Guardando...' : `Guardar Todo`}
                   </button>
                 </div>
               )}
               <div className="partidos-grid">
-                {partidos.map((partido) => {
+                {partidosAMostrar.map((partido) => {
                   const miProno = getPronostico(partido.id);
                   return (
                     <PartidoCard
@@ -313,19 +321,29 @@ export default function Dashboard() {
         </div>
 
         {fase === 'grupos' && grupo && tablaProyectada && (
-          <div className="dashboard-right">
-            <h2 style={{ fontSize: '1rem', marginBottom: '1rem', fontFamily: 'Anybody', textTransform: 'uppercase' }}>
-              Simulador de Posiciones
-            </h2>
-            <TablaGrupo titulo={`Grupo ${grupo} (Proyectado)`} posiciones={tablaProyectada} />
-            <p style={{ fontSize: '0.7rem', color: 'var(--outline)', fontStyle: 'italic', marginTop: '-1.5rem' }}>
-              * Basado en tus pronósticos y resultados reales.
-            </p>
-          </div>
+          <aside className="dashboard-right">
+            <header style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>analytics</span>
+              <h2 style={{ fontSize: '0.8rem', fontFamily: 'Anybody', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Simulador de Posiciones
+              </h2>
+            </header>
+            <div className="glass-card" style={{ borderRadius: '16px', padding: '1rem' }}>
+              <TablaGrupo titulo={`Grupo ${grupo} (Proyectado)`} posiciones={tablaProyectada} />
+              <p style={{ fontSize: '0.65rem', color: 'var(--outline)', fontStyle: 'italic', marginTop: '1rem', lineHeight: '1.4' }}>
+                * Esta tabla se actualiza en tiempo real mientras escribes tus pronósticos.
+              </p>
+            </div>
+          </aside>
         )}
       </div>
 
-      <button onClick={logout} className="btn-logout">Cerrar sesion</button>
+      <footer style={{ marginTop: '4rem', borderTop: '1px solid var(--border)', paddingTop: '2rem' }}>
+        <button onClick={logout} className="admin-btn danger" style={{ width: 'auto' }}>
+          <span className="material-symbols-outlined">logout</span>
+          Cerrar sesión
+        </button>
+      </footer>
     </div>
   );
 }
