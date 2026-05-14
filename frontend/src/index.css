@@ -817,43 +817,61 @@ body::after {
 .ranking-page {
   padding: 0;
   max-width: none;
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll on the whole page */
 }
 
 .ranking-hero {
   max-width: 1440px;
   margin: 0 auto;
   padding: 3rem clamp(16px, 5vw, 64px);
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 3rem;
 }
 
 @media (min-width: 1024px) {
   .ranking-hero {
-    flex-direction: row;
+    grid-template-columns: 1fr 400px; /* Fixed width for sidebar on desktop */
+    align-items: start;
   }
 }
 
 .hero-left {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+  min-width: 0; /* CRITICAL: Allows flex/grid children to shrink and not overflow */
+  width: 100%;
 }
 
 .hero-right {
   width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  gap: 2rem;
 }
 
 @media (min-width: 1024px) {
   .hero-right {
-    width: 480px;
-    flex-shrink: 0;
+    position: sticky;
+    top: 100px;
   }
 }
+
+.brackets-section {
+  width: 100%;
+  overflow: hidden; /* Contain the scrollable brackets */
+  margin-top: 3rem;
+}
+
+.brackets-container {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  padding: 1rem 0 2rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+}
+
 
 .hero-badge {
   display: inline-flex;
