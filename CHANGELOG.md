@@ -2,6 +2,17 @@
 
 All notable changes to this project.
 
+## [v1.4.0] - 2026-05-14
+
+### New Features
+- **Admin:** Comprehensive redesign of the Admin Panel with a responsive sidebar navigation.
+- **Admin:** Added a new Admin Dashboard showing system-wide statistics (User count, predictions, matches).
+- **Backend:** Added `/api/admin/stats` endpoint for real-time tournament data.
+
+### Improvements
+- **UI:** Restricted match prediction inputs to integer values only.
+- **UI:** Improved mobile responsiveness for the administrative interface.
+
 ## [v1.3.0] - 2026-05-13
 
 ### New Features

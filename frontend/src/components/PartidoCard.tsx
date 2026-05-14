@@ -81,9 +81,14 @@ export default function PartidoCard({
                 max="20"
                 value={local}
                 onChange={(e) => {
-                  const v = e.target.value;
+                  const v = e.target.value.replace(/[^0-9]/g, '');
                   setLocal(v);
                   onInputChange?.(partido.id, v, visitante);
+                }}
+                onKeyDown={(e) => {
+                  if (['.', ',', '-', 'e'].includes(e.key)) {
+                    e.preventDefault();
+                  }
                 }}
                 className="input-gol"
                 placeholder="?"
@@ -95,9 +100,14 @@ export default function PartidoCard({
                 max="20"
                 value={visitante}
                 onChange={(e) => {
-                  const v = e.target.value;
+                  const v = e.target.value.replace(/[^0-9]/g, '');
                   setVisitante(v);
                   onInputChange?.(partido.id, local, v);
+                }}
+                onKeyDown={(e) => {
+                  if (['.', ',', '-', 'e'].includes(e.key)) {
+                    e.preventDefault();
+                  }
                 }}
                 className="input-gol"
                 placeholder="?"

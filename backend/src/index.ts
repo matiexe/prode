@@ -11,6 +11,7 @@ import usuariosRoutes from './routes/usuarios.routes';
 import { partidosRouter, partidosAdminRouter } from './routes/partidos.routes';
 import pronosticosRoutes from './routes/pronosticos.routes';
 import configuracionRoutes from './routes/configuracion.routes';
+import adminRoutes from './routes/admin.routes';
 import seedRoutes from './routes/seed.routes';
 
 dotenv.config();
@@ -32,6 +33,7 @@ app.get('/api/docs.json', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin/usuarios', usuariosRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/partidos', partidosRouter);
 app.use('/api/admin/partidos', partidosAdminRouter);
 app.use('/api/pronosticos', pronosticosRoutes);
