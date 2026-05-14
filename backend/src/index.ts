@@ -44,26 +44,19 @@ async function initializeDb() {
   try {
     await testConnection();
     
-    // Forzamos alter: true para que agregue columnas nuevas como 'ganador_nombre'
-    // sin borrar los datos existentes.
+    // Forzamos la creación/actualización del esquema
     await sequelize.sync({ alter: true });
-    console.log('Modelos sincronizados y esquema actualizado con la base de datos.');
-
-    // Verificación manual de la columna para el log
+    
+    // Intento manual de agregar la columna por si alter:true falla en Vercel Postgres
     try {
-      const [columnCheck]: any = await sequelize.query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'partidos' AND column_name = 'ganador_nombre'
-      `);
-      if (columnCheck.length > 0) {
-        console.log('[DEBUG DB] Columna "ganador_nombre" verificada exitosamente.');
-      } else {
-        console.error('[DEBUG DB] ADVERTENCIA: La columna "ganador_nombre" no se encontró tras el sync.');
-      }
-    } catch (e) {
-      console.error('[DEBUG DB] Error al verificar columna:', e);
+      console.log('[DB] Verificando columna "ganador_nombre" manualmente...');
+      await sequelize.query('ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "ganador_nombre" VARCHAR(255)');
+      console.log('[DB] Columna "ganador_nombre" asegurada.');
+    } catch (sqlErr) {
+      console.warn('[DB] Nota: No se pudo ejecutar ALTER TABLE manual (puede que ya exista):', (sqlErr as any).message);
     }
+
+    console.log('Modelos sincronizados y esquema actualizado con la base de datos.');
 
     const configCount = await ConfiguracionPuntos.count();
     if (configCount === 0) {
