@@ -163,31 +163,17 @@ export default function AdminPanel() {
   ];
 
   return (
-    <div className="admin-layout" style={{ display: 'flex', minHeight: 'calc(100vh - 80px)', background: 'var(--surface-container-lowest)' }}>
+    <div className="admin-layout">
       {/* Sidebar Overlay (Mobile) */}
       {sidebarOpen && (
         <div 
           className="sidebar-overlay" 
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 90, backdropFilter: 'blur(4px)' }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`} style={{ 
-        width: '280px', 
-        background: 'var(--surface-container-low)', 
-        borderRight: '1px solid var(--border)',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'fixed', // Always fixed to prevent layout shift on mobile
-        top: '80px',
-        height: 'calc(100vh - 80px)',
-        zIndex: 100,
-        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
-        flexShrink: 0
-      }}>
+      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header" style={{ padding: '2rem 1.5rem' }}>
           <h2 style={{ fontFamily: 'Anybody', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--outline)' }}>
             Menú de Administración
@@ -238,25 +224,15 @@ export default function AdminPanel() {
       </aside>
 
       {/* Main Content */}
-      <main className="admin-main" style={{ flex: 1, padding: '2rem clamp(16px, 5vw, 64px)', overflowX: 'hidden' }}>
+      <main className="admin-main">
+        {/* Toggle only visible on tablet/mobile where sidebar is hidden */}
+
         <button 
-          className="sidebar-toggle" 
+          className="admin-sidebar-toggle" 
           onClick={() => setSidebarOpen(true)}
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '0.5rem', 
-            background: 'var(--surface-container-high)', 
-            border: '1px solid var(--border)', 
-            padding: '0.5rem 1rem', 
-            borderRadius: '8px',
-            color: 'var(--on-surface)',
-            cursor: 'pointer',
-            marginBottom: '1.5rem'
-          }}
         >
-          <span className="material-symbols-outlined">menu</span>
-          Menú
+          <span className="material-symbols-outlined">settings_accessibility</span>
+          Opciones Admin
         </button>
 
         {mensaje && (
