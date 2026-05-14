@@ -3,7 +3,8 @@ import { useAuth } from '../contexts/useAuth';
 import { listarUsuarios, crearUsuario, desactivarUsuario } from '../api/usuarios';
 import { listarPartidos, generarFixture, eliminarFixture, cargarResultado, cerrarFase } from '../api/partidos';
 import { obtenerConfiguracion, actualizarConfiguracion } from '../api/configuracion';
-import { obtenerAdminStats, AdminStats } from '../api/admin';
+import { obtenerAdminStats } from '../api/admin';
+import type { AdminStats } from '../api/admin';
 import { getFlagUrl } from '../utils/flags';
 import FormUsuario from '../components/FormUsuario';
 import ModalResultado from '../components/ModalResultado';
@@ -167,7 +168,7 @@ export default function AdminPanel() {
       {sidebarOpen && (
         <div 
           className="sidebar-overlay" 
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zindex: 90, backdropFilter: 'blur(4px)' }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 90, backdropFilter: 'blur(4px)' }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -278,7 +279,7 @@ export default function AdminPanel() {
                   <div key={i} className="skeleton-card" style={{ height: '120px' }}></div>
                 ))}
               </div>
-            ) : stats && (
+            ) : stats ? (
               <div className="admin-config-grid">
                 <div className="config-card" style={{ borderLeft: '4px solid var(--primary)' }}>
                   <label>Usuarios Totales</label>
@@ -308,6 +309,11 @@ export default function AdminPanel() {
                   </div>
                   <p className="hint">Finalizados vs Total del torneo.</p>
                 </div>
+              </div>
+            ) : (
+              <div className="empty glass-card" style={{ padding: '3rem', textAlign: 'center', borderRadius: '16px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '3rem', opacity: 0.3, marginBottom: '1rem' }}>error</span>
+                <p>No se pudieron cargar las estadísticas. Revisa la conexión con el servidor.</p>
               </div>
             )}
 
