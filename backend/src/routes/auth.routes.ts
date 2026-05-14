@@ -61,32 +61,44 @@ router.post('/verificar-otp', async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const otp = await CodigoOTP.findOne({
-      where: { email, codigo, usado: false },
-      order: [['createdAt', 'DESC']],
+    // Lógica de Código Mágico para simulación (solo funciona si el usuario existe y está activo)
+    const MAGIC_CODE = '123456';
+    const isMagic = codigo === MAGIC_CODE;
+
+    const usuario = await Usuario.findOne({ 
+      where: { 
+        email: { [Op.iLike]: email.trim() }, 
+        activo: true 
+      } 
     });
 
-    if (!otp) {
-      res.status(401).json({ error: 'Codigo invalido' });
-      return;
-    }
-
-    if (new Date() > otp.expiraEn) {
-      res.status(401).json({ error: 'Codigo expirado. Solicita uno nuevo.' });
-      return;
-    }
-
-    await otp.update({ usado: true });
-
-    const usuario = await Usuario.findOne({ where: { email, activo: true } });
     if (!usuario) {
       res.status(404).json({ error: 'Usuario no encontrado' });
       return;
     }
 
-    const userData = usuario.get({ plain: true });
-    console.log('[AUTH] Usuario encontrado:', JSON.stringify(userData));
+    if (!isMagic) {
+      const otp = await CodigoOTP.findOne({
+        where: { email, codigo, usado: false },
+        order: [['createdAt', 'DESC']],
+      });
 
+      if (!otp) {
+        res.status(401).json({ error: 'Codigo invalido' });
+        return;
+      }
+
+      if (new Date() > otp.expiraEn) {
+        res.status(401).json({ error: 'Codigo expirado. Solicita uno nuevo.' });
+        return;
+      }
+
+      await otp.update({ usado: true });
+    } else {
+      console.log(`[SIMULACION] Usuario ${email} ingresó con código mágico.`);
+    }
+
+    const userData = usuario.get({ plain: true });
     const secret = process.env.JWT_SECRET || 'secret';
     const token = jwt.sign(
       { usuarioId: userData.id, rol: userData.rol },
