@@ -1883,12 +1883,29 @@ body::after {
 }
 
 .form-usuario {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  margin-bottom: 1rem;
+  background: rgba(29, 32, 34, 0.4);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(224, 227, 229, 0.08);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
 }
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  align-items: center;
+}
+
+.form-actions .btn-primary {
+  flex: 2;
+}
+
+.form-actions .btn-secondary {
+  flex: 1;
+}
+
 
 /* Admin Panel Layout & Sidebar */
 .admin-wrapper {
