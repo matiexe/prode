@@ -186,7 +186,7 @@ export default function AdminPanel() {
           </p>
         </div>
 
-        <nav className="sidebar-nav" style={{ flex: 1, padding: '0 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <nav className="sidebar-nav" style={{ flex: 1, padding: '0 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', overflowY: 'auto' }}>
           <div className="sidebar-label" style={{ padding: '0.5rem 1.5rem', fontSize: '0.6rem', fontWeight: 800, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
             Administración
           </div>
@@ -224,20 +224,41 @@ export default function AdminPanel() {
             Navegación Pública
           </div>
           
-          <Link to="/ranking" className="sidebar-link" style={{ textDecoration: 'none' }}>
-            <button className="sidebar-item" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.5rem', border: 'none', background: 'transparent', color: 'var(--on-surface-variant)', borderRadius: '12px', cursor: 'pointer', fontFamily: 'Anybody', fontSize: '0.8rem', fontWeight: 500, textAlign: 'left' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>leaderboard</span>
-              Ver Ranking
-            </button>
+          <Link to="/ranking" style={{ 
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            padding: '0.85rem 1.5rem',
+            color: 'var(--on-surface-variant)',
+            borderRadius: '12px',
+            fontFamily: 'Anybody',
+            fontSize: '0.8rem',
+            fontWeight: 500,
+            transition: 'all 0.2s'
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>leaderboard</span>
+            Ver Ranking
           </Link>
 
-          <Link to="/dashboard" className="sidebar-link" style={{ textDecoration: 'none' }}>
-            <button className="sidebar-item" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.5rem', border: 'none', background: 'transparent', color: 'var(--on-surface-variant)', borderRadius: '12px', cursor: 'pointer', fontFamily: 'Anybody', fontSize: '0.8rem', fontWeight: 500, textAlign: 'left' }}>
-              <span className="material-symbols-outlined">dashboard</span>
-              Mi Prode
-            </button>
+          <Link to="/dashboard" style={{ 
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            padding: '0.85rem 1.5rem',
+            color: 'var(--on-surface-variant)',
+            borderRadius: '12px',
+            fontFamily: 'Anybody',
+            fontSize: '0.8rem',
+            fontWeight: 500,
+            transition: 'all 0.2s'
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>dashboard</span>
+            Mi Prode
           </Link>
         </nav>
+
 
         <div className="sidebar-footer" style={{ padding: '2rem 1rem 3rem' }}>
           <button 
