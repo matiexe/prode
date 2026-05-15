@@ -101,39 +101,51 @@ function GlobalSidebar({ open, onClose }: { open: boolean; onClose: () => void }
   );
 }
 
-export default function App() {
+function AppContent() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+  const isAdminPath = location.pathname === '/admin';
 
+  return (
+    <>
+      {!isAdminPath && <Navbar onOpenMenu={() => setMenuOpen(true)} />}
+      {!isAdminPath && <GlobalSidebar open={menuOpen} onClose={() => setMenuOpen(false)} />}
+      <main className={isAdminPath ? "admin-wrapper" : "main-content"}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/ranking" element={<RankingPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <AuthGuard>
+                <Dashboard />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AuthGuard requireAdmin>
+                <AdminPanel />
+              </AuthGuard>
+            }
+          />
+          <Route path="/" element={<RankingPage />} />
+          <Route path="*" element={<RankingPage />} />
+        </Routes>
+      </main>
+    </>
+  );
+}
+
+export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Navbar onOpenMenu={() => setMenuOpen(true)} />
-        <GlobalSidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
-        <main className="main-content">
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/ranking" element={<RankingPage />} />
-            <Route
-              path="/dashboard"
-              element={
-                <AuthGuard>
-                  <Dashboard />
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <AuthGuard requireAdmin>
-                  <AdminPanel />
-                </AuthGuard>
-              }
-            />
-            <Route path="/" element={<RankingPage />} />
-          </Routes>
-        </main>
+        <AppContent />
       </BrowserRouter>
     </AuthProvider>
   );
 }
+
 

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
+
 import { listarUsuarios, crearUsuario, desactivarUsuario } from '../api/usuarios';
 import { listarPartidos, generarFixture, eliminarFixture, cargarResultado, cerrarFase } from '../api/partidos';
 import { obtenerConfiguracion, actualizarConfiguracion } from '../api/configuracion';
@@ -174,13 +176,20 @@ export default function AdminPanel() {
 
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-header" style={{ padding: '2rem 1.5rem' }}>
-          <h2 style={{ fontFamily: 'Anybody', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--outline)' }}>
-            Menú de Administración
-          </h2>
+        <div className="sidebar-header" style={{ padding: '2rem 1.5rem', borderBottom: '1px solid var(--border)', marginBottom: '1rem' }}>
+          <Link to="/" className="nav-logo" style={{ fontSize: '1.1rem' }}>
+            <span className="material-symbols-outlined nav-icon" style={{ fontVariationSettings: "'FILL' 1" }}>trophy</span>
+            PRODE BSC 2026
+          </Link>
+          <p style={{ fontSize: '0.65rem', color: 'var(--outline)', marginTop: '0.5rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+            Panel de Control
+          </p>
         </div>
 
-        <nav className="sidebar-nav" style={{ flex: 1, padding: '0 1rem' }}>
+        <nav className="sidebar-nav" style={{ flex: 1, padding: '0 1rem', display: 'flex', flexDirection: column, gap: '0.25rem' }}>
+          <div className="sidebar-label" style={{ padding: '0.5rem 1.5rem', fontSize: '0.6rem', fontWeight: 800, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            Administración
+          </div>
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -191,37 +200,57 @@ export default function AdminPanel() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '1rem',
-                padding: '1rem 1.5rem',
+                padding: '0.85rem 1.5rem',
                 border: 'none',
                 background: tab === t.id ? 'rgba(177, 198, 249, 0.1)' : 'transparent',
                 color: tab === t.id ? 'var(--primary)' : 'var(--on-surface-variant)',
                 borderRadius: '12px',
                 cursor: 'pointer',
                 fontFamily: 'Anybody',
-                fontSize: '0.85rem',
+                fontSize: '0.8rem',
                 fontWeight: tab === t.id ? 700 : 500,
                 textAlign: 'left',
-                marginBottom: '0.5rem',
                 transition: 'all 0.2s'
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>{t.icon}</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>{t.icon}</span>
               {t.label}
             </button>
           ))}
+
+          <div className="sidebar-separator" style={{ height: '1px', background: 'var(--border)', margin: '1rem 1.5rem' }} />
+          
+          <div className="sidebar-label" style={{ padding: '0.5rem 1.5rem', fontSize: '0.6rem', fontWeight: 800, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            Navegación Pública
+          </div>
+          
+          <Link to="/ranking" className="sidebar-link" style={{ textDecoration: 'none' }}>
+            <button className="sidebar-item" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.5rem', border: 'none', background: 'transparent', color: 'var(--on-surface-variant)', borderRadius: '12px', cursor: 'pointer', fontFamily: 'Anybody', fontSize: '0.8rem', fontWeight: 500, textAlign: 'left' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>leaderboard</span>
+              Ver Ranking
+            </button>
+          </Link>
+
+          <Link to="/dashboard" className="sidebar-link" style={{ textDecoration: 'none' }}>
+            <button className="sidebar-item" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.5rem', border: 'none', background: 'transparent', color: 'var(--on-surface-variant)', borderRadius: '12px', cursor: 'pointer', fontFamily: 'Anybody', fontSize: '0.8rem', fontWeight: 500, textAlign: 'left' }}>
+              <span className="material-symbols-outlined">dashboard</span>
+              Mi Prode
+            </button>
+          </Link>
         </nav>
 
-        <div className="sidebar-footer" style={{ padding: '2rem 1rem' }}>
+        <div className="sidebar-footer" style={{ padding: '1.5rem 1rem' }}>
           <button 
             onClick={logout} 
             className="admin-btn danger" 
-            style={{ width: '100%', justifyContent: 'center' }}
+            style={{ width: '100%', justifyContent: 'center', borderRadius: '12px' }}
           >
             <span className="material-symbols-outlined">logout</span>
             Cerrar Sesión
           </button>
         </div>
       </aside>
+
 
       {/* Main Content */}
       <main className="admin-main">
