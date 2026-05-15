@@ -239,7 +239,7 @@ export default function AdminPanel() {
           </Link>
         </nav>
 
-        <div className="sidebar-footer" style={{ padding: '1.5rem 1rem' }}>
+        <div className="sidebar-footer" style={{ padding: '2rem 1rem 3rem' }}>
           <button 
             onClick={logout} 
             className="admin-btn danger" 
@@ -249,6 +249,7 @@ export default function AdminPanel() {
             Cerrar Sesión
           </button>
         </div>
+
       </aside>
 
 
