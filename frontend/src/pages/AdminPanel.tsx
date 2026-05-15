@@ -186,7 +186,7 @@ export default function AdminPanel() {
           </p>
         </div>
 
-        <nav className="sidebar-nav" style={{ flex: 1, padding: '0 1rem', display: 'flex', flexDirection: column, gap: '0.25rem' }}>
+        <nav className="sidebar-nav" style={{ flex: 1, padding: '0 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <div className="sidebar-label" style={{ padding: '0.5rem 1.5rem', fontSize: '0.6rem', fontWeight: 800, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
             Administración
           </div>
