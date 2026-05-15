@@ -2,6 +2,20 @@
 
 All notable changes to this project.
 
+## [v1.5.0] - 2026-05-14
+
+### New Features
+- **Admin:** Unified navigation by hiding the global navbar on admin routes and integrating public links into a dedicated admin sidebar.
+- **Admin:** Workspace-focused layout that occupies the full screen height for a more professional experience.
+
+### Bug Fixes
+- **UI:** Fixed persistent sidebar overlap on desktop by migrating the Admin Panel layout to a robust CSS Grid system.
+- **UI:** Resolved vertical overflow in the admin sidebar and standardized item spacing.
+- **UI:** Improved `FormUsuario` layout with better button spacing and glass-morphism effects.
+- **CI:** Fixed a TypeScript syntax error in `AdminPanel.tsx` that was breaking the GitHub Actions build.
+
+---
+
 ## [v1.4.0] - 2026-05-14
 
 ### New Features
