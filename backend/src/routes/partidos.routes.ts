@@ -36,21 +36,23 @@ partidosAdminRouter.post('/generar', async (_req: AuthRequest, res: Response): P
       return;
     }
 
-    let partidosCreados = 0;
+    const partidosToCreate: any[] = [];
 
+    // 1. Preparar partidos de grupos
     for (const [grupo, data] of Object.entries(FIXTURE_DATA.grupos)) {
       for (const partido of data.partidos) {
-        await Partido.create({
+        partidosToCreate.push({
           fase: 'grupos',
           grupo,
           equipoLocal: partido.local,
           equipoVisitante: partido.visitante,
           fechaHora: new Date(partido.fecha),
+          estado: 'pendiente'
         });
-        partidosCreados++;
       }
     }
 
+    // 2. Preparar partidos de eliminatorias
     const eliminatorias: Array<{ fase: '16vos' | '8vos' | 'cuartos' | 'semis' | '3er_puesto' | 'final'; partidos: number; fechas: string[] }> = [
       { fase: '16vos', partidos: 16, fechas: generarFechas('2026-06-28', '2026-07-03', 16) },
       { fase: '8vos', partidos: 8, fechas: generarFechas('2026-07-04', '2026-07-07', 8) },
@@ -63,20 +65,23 @@ partidosAdminRouter.post('/generar', async (_req: AuthRequest, res: Response): P
     for (const { fase, partidos: cantidad, fechas } of eliminatorias) {
       for (let i = 0; i < cantidad; i++) {
         const fecha = fechas[i] || fechas[fechas.length - 1];
-        await Partido.create({
+        partidosToCreate.push({
           fase,
           grupo: null,
           equipoLocal: 'Por definir',
           equipoVisitante: 'Por definir',
           fechaHora: new Date(fecha),
+          estado: 'pendiente'
         });
-        partidosCreados++;
       }
     }
 
+    // 3. Inserción masiva (mucho más rápido en producción)
+    await Partido.bulkCreate(partidosToCreate);
+
     res.status(201).json({
       mensaje: `Fixture generado exitosamente`,
-      totalPartidos: partidosCreados,
+      totalPartidos: partidosToCreate.length,
     });
   } catch (error) {
     console.error('Error al generar fixture:', error);

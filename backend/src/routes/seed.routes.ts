@@ -21,10 +21,10 @@ router.post('/full-reset', async (req: Request, res: Response): Promise<void> =>
     await Partido.destroy({ where: {} });
     
     // 2. Cargar Fixture de Grupos
-    let partidosCreados = 0;
+    const partidosToCreate: any[] = [];
     for (const [grupo, data] of Object.entries(FIXTURE_DATA.grupos)) {
       for (const p of data.partidos) {
-        await Partido.create({
+        partidosToCreate.push({
           fase: 'grupos',
           grupo,
           equipoLocal: p.local,
@@ -32,9 +32,11 @@ router.post('/full-reset', async (req: Request, res: Response): Promise<void> =>
           fechaHora: new Date(p.fecha),
           estado: 'pendiente'
         });
-        partidosCreados++;
       }
     }
+    
+    await Partido.bulkCreate(partidosToCreate);
+    const partidosCreados = partidosToCreate.length;
 
     // 3. Crear Admin si no existe
     const [admin, created] = await Usuario.findOrCreate({
