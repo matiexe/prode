@@ -7,6 +7,7 @@ import { sequelize, testConnection } from './config/database';
 import { DataTypes } from 'sequelize';
 import { ConfiguracionPuntos } from './models/ConfiguracionPuntos';
 import { Usuario } from './models/Usuario';
+import { CodigoOTP } from './models/CodigoOTP';
 import authRoutes from './routes/auth.routes';
 import usuariosRoutes from './routes/usuarios.routes';
 import { partidosRouter, partidosAdminRouter } from './routes/partidos.routes';
@@ -81,6 +82,14 @@ async function initializeDb() {
           type: DataTypes.INTEGER,
           allowNull: true
         });
+      }
+
+      // Verificación de tabla codigos_otp
+      try {
+        await queryInterface.describeTable('codigos_otp');
+      } catch (e) {
+        console.log('[DB] La tabla "codigos_otp" no existe. Intentando crearla...');
+        await CodigoOTP.sync();
       }
     } catch (colErr) {
       console.warn('[DB] Nota: No se pudo verificar/agregar columnas manualmente:', (colErr as any).message);
