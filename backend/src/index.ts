@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './docs/swagger';
 import { sequelize, testConnection } from './config/database';
+import { DataTypes } from 'sequelize';
 import { ConfiguracionPuntos } from './models/ConfiguracionPuntos';
 import { Usuario } from './models/Usuario';
 import authRoutes from './routes/auth.routes';
@@ -46,16 +47,43 @@ async function initializeDb() {
   try {
     await testConnection();
     
-    // Forzamos la creación/actualización del esquema
-    await sequelize.sync({ alter: true });
-    
-    // Intento manual de agregar la columna por si alter:true falla en Vercel Postgres
+    // Sincronización inicial
     try {
-      console.log('[DB] Verificando columna "ganador_nombre" manualmente...');
-      await sequelize.query('ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "ganador_nombre" VARCHAR(255)');
-      console.log('[DB] Columna "ganador_nombre" asegurada.');
-    } catch (sqlErr) {
-      console.warn('[DB] Nota: No se pudo ejecutar ALTER TABLE manual (puede que ya exista):', (sqlErr as any).message);
+      await sequelize.sync({ alter: true });
+    } catch (syncErr) {
+      console.warn('[DB] Advertencia durante sync({alter:true}):', (syncErr as any).message);
+    }
+    
+    // Verificación y corrección manual de columnas críticas en la tabla 'partidos'
+    // Esto ayuda en entornos como Vercel Postgres donde alter:true a veces no detecta cambios
+    try {
+      const queryInterface = sequelize.getQueryInterface();
+      const tableDefinition = await queryInterface.describeTable('partidos');
+      
+      if (!tableDefinition.ganador_nombre) {
+        console.log('[DB] Agregando columna faltante "ganador_nombre" a la tabla "partidos"...');
+        await queryInterface.addColumn('partidos', 'ganador_nombre', {
+          type: DataTypes.STRING(100),
+          allowNull: true
+        });
+        console.log('[DB] Columna "ganador_nombre" agregada.');
+      }
+
+      if (!tableDefinition.goles_local) {
+        await queryInterface.addColumn('partidos', 'goles_local', {
+          type: DataTypes.INTEGER,
+          allowNull: true
+        });
+      }
+
+      if (!tableDefinition.goles_visitante) {
+        await queryInterface.addColumn('partidos', 'goles_visitante', {
+          type: DataTypes.INTEGER,
+          allowNull: true
+        });
+      }
+    } catch (colErr) {
+      console.warn('[DB] Nota: No se pudo verificar/agregar columnas manualmente:', (colErr as any).message);
     }
 
     console.log('Modelos sincronizados y esquema actualizado con la base de datos.');
