@@ -17,14 +17,14 @@ export interface PronosticoAttributes {
 export interface PronosticoCreationAttributes extends Optional<PronosticoAttributes, 'id' | 'puntosObtenidos'> {}
 
 export class Pronostico extends Model<PronosticoAttributes, PronosticoCreationAttributes> implements PronosticoAttributes {
-  public id!: number;
-  public usuarioId!: number;
-  public partidoId!: number;
-  public golesLocal!: number;
-  public golesVisitante!: number;
-  public puntosObtenidos!: number | null;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare id: number;
+  declare usuarioId: number;
+  declare partidoId: number;
+  declare golesLocal: number;
+  declare golesVisitante: number;
+  declare puntosObtenidos: number | null;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 Pronostico.init(
@@ -45,12 +45,12 @@ Pronostico.init(
       references: { model: Partido, key: 'id' },
     },
     golesLocal: {
-      type: DataTypes.TINYINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       validate: { min: 0 },
     },
     golesVisitante: {
-      type: DataTypes.TINYINT,
+      type: DataTypes.INTEGER,
       allowNull: false,
       validate: { min: 0 },
     },

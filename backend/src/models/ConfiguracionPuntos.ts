@@ -13,12 +13,12 @@ export interface ConfiguracionPuntosAttributes {
 export interface ConfiguracionPuntosCreationAttributes extends Optional<ConfiguracionPuntosAttributes, 'id' | 'activo'> {}
 
 export class ConfiguracionPuntos extends Model<ConfiguracionPuntosAttributes, ConfiguracionPuntosCreationAttributes> implements ConfiguracionPuntosAttributes {
-  public id!: number;
-  public tipo!: 'exacto' | 'diferencia' | 'ganador' | 'error';
-  public puntos!: number;
-  public activo!: boolean;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare id: number;
+  declare tipo: 'exacto' | 'diferencia' | 'ganador' | 'error';
+  declare puntos: number;
+  declare activo: boolean;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 ConfiguracionPuntos.init(

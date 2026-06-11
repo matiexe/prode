@@ -11,6 +11,7 @@ import usuariosRoutes from './routes/usuarios.routes';
 import { partidosRouter, partidosAdminRouter } from './routes/partidos.routes';
 import pronosticosRoutes from './routes/pronosticos.routes';
 import configuracionRoutes from './routes/configuracion.routes';
+import adminRoutes from './routes/admin.routes';
 import seedRoutes from './routes/seed.routes';
 
 dotenv.config();
@@ -32,26 +33,32 @@ app.get('/api/docs.json', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin/usuarios', usuariosRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/partidos', partidosRouter);
 app.use('/api/admin/partidos', partidosAdminRouter);
 app.use('/api/pronosticos', pronosticosRoutes);
 app.use('/api/admin/configuracion', configuracionRoutes);
 app.use('/api/seed', seedRoutes);
 
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-let isDbInitialized = false;
+let dbInitializationPromise: Promise<void> | null = null;
 
 async function initializeDb() {
-  if (isDbInitialized) return;
   try {
     await testConnection();
-    // Nota: sequelize.sync() se mantiene para simplicidad en este prototipo,
-    // asegurando que las tablas existan en Vercel Postgres.
-    await sequelize.sync();
-    console.log('Modelos sincronizados con la base de datos.');
+    
+    // Forzamos la creación/actualización del esquema
+    await sequelize.sync({ alter: true });
+    
+    // Intento manual de agregar la columna por si alter:true falla en Vercel Postgres
+    try {
+      console.log('[DB] Verificando columna "ganador_nombre" manualmente...');
+      await sequelize.query('ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "ganador_nombre" VARCHAR(255)');
+      console.log('[DB] Columna "ganador_nombre" asegurada.');
+    } catch (sqlErr) {
+      console.warn('[DB] Nota: No se pudo ejecutar ALTER TABLE manual (puede que ya exista):', (sqlErr as any).message);
+    }
+
+    console.log('Modelos sincronizados y esquema actualizado con la base de datos.');
 
     const configCount = await ConfiguracionPuntos.count();
     if (configCount === 0) {
@@ -73,18 +80,49 @@ async function initializeDb() {
       });
       console.log('Usuario administrador creado (admin@prode2026.com).');
     }
-    isDbInitialized = true;
   } catch (error) {
     console.error('Error al inicializar la base de datos:', error);
+    dbInitializationPromise = null; // Permitir reintento en la siguiente petición si falla
+    throw error;
   }
 }
 
 // Middleware para asegurar inicialización de DB en la primera petición (Warm start)
 app.use(async (_req, _res, next) => {
-  if (!isDbInitialized) {
-    await initializeDb();
+  if (!dbInitializationPromise) {
+    dbInitializationPromise = initializeDb();
   }
-  next();
+  
+  try {
+    await dbInitializationPromise;
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get('/api/health', async (_req, res) => {
+  try {
+    const [results]: any = await sequelize.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+    const tables = Array.isArray(results) ? results.map((r: any) => r.table_name) : [];
+    
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      database: sequelize.getDatabaseName(),
+      host: (sequelize.connectionManager as any).config.host,
+      tables,
+      env: process.env.NODE_ENV
+    });
+  } catch (error: any) {
+    res.status(500).json({ 
+      status: 'error', 
+      error: error.message,
+      database: sequelize.getDatabaseName(),
+      host: (sequelize.connectionManager as any).config.host,
+      env: process.env.NODE_ENV
+    });
+  }
 });
 
 // En desarrollo local arrancamos el servidor manualmente

@@ -14,13 +14,13 @@ export interface UsuarioAttributes {
 export interface UsuarioCreationAttributes extends Optional<UsuarioAttributes, 'id' | 'rol' | 'activo'> {}
 
 export class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes> implements UsuarioAttributes {
-  public id!: number;
-  public nombre!: string;
-  public email!: string;
-  public rol!: 'admin' | 'user';
-  public activo!: boolean;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare id: number;
+  declare nombre: string;
+  declare email: string;
+  declare rol: 'admin' | 'user';
+  declare activo: boolean;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 Usuario.init(

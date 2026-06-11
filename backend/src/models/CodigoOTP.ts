@@ -13,12 +13,12 @@ export interface CodigoOTPAttributes {
 export interface CodigoOTPCreationAttributes extends Optional<CodigoOTPAttributes, 'id' | 'usado' | 'createdAt'> {}
 
 export class CodigoOTP extends Model<CodigoOTPAttributes, CodigoOTPCreationAttributes> implements CodigoOTPAttributes {
-  public id!: number;
-  public email!: string;
-  public codigo!: string;
-  public expiraEn!: Date;
-  public usado!: boolean;
-  public readonly createdAt!: Date;
+  declare id: number;
+  declare email: string;
+  declare codigo: string;
+  declare expiraEn: Date;
+  declare usado: boolean;
+  declare readonly createdAt: Date;
 }
 
 CodigoOTP.init(

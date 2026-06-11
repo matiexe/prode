@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { obtenerRanking } from '../api/pronosticos';
+import { listarPartidos } from '../api/partidos';
 import { solicitarOTP, verificarOTP } from '../api/auth';
 import { useAuth } from '../contexts/useAuth';
-import type { RankingEntry } from '../types';
+import Brackets from '../components/Brackets';
+import type { RankingEntry, Partido } from '../types';
+import fifaImg from '../assets/fifa.jpg';
 
 function getInitials(name: string): string {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -12,6 +15,7 @@ function getInitials(name: string): string {
 export default function RankingPage() {
   const { usuario } = useAuth();
   const [ranking, setRanking] = useState<RankingEntry[]>([]);
+  const [partidos, setPartidos] = useState<Partido[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [email, setEmail] = useState('');
@@ -23,10 +27,14 @@ export default function RankingPage() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const data = await obtenerRanking();
-        setRanking(data);
+        const [rankingData, partidosData] = await Promise.all([
+          obtenerRanking(),
+          listarPartidos()
+        ]);
+        setRanking(rankingData);
+        setPartidos(partidosData);
       } catch (err) {
-        console.error('Error al obtener ranking:', err);
+        console.error('Error al obtener datos:', err);
       } finally {
         setLoading(false);
       }
@@ -68,19 +76,34 @@ export default function RankingPage() {
   const rest = ranking.filter((_, i) => i >= 3);
 
   return (
-    <div className="ranking-page">
+    <div className="page ranking-page" style={{ maxWidth: '1440px', margin: '0 auto' }}>
       <div className="ranking-hero">
         <div className="hero-left">
           <div className="ranking-section">
             <div className="ranking-header">
               <h2>Ranking Global</h2>
               <div className="ranking-chips">
-                <span className="ranking-chip">Temp. 1</span>
+                <span className="ranking-chip active">Temp. 1</span>
               </div>
             </div>
 
             {loading ? (
-              <div className="loading">Cargando ranking...</div>
+              <>
+                <div className="top3-grid">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="top3-card skeleton-card" style={{ height: '220px' }}>
+                      <div className="skeleton skeleton-circle" style={{ width: '60px', height: '60px', marginBottom: '1rem' }}></div>
+                      <div className="skeleton" style={{ width: '80%', height: '20px', marginBottom: '0.5rem' }}></div>
+                      <div className="skeleton" style={{ width: '60%', height: '16px' }}></div>
+                    </div>
+                  ))}
+                </div>
+                <div className="ranking-table-container glass-card" style={{ padding: '1rem' }}>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="skeleton" style={{ height: '50px', marginBottom: '0.5rem', opacity: 0.3 }}></div>
+                  ))}
+                </div>
+              </>
             ) : ranking.length === 0 ? (
               <div className="empty">Aun no hay puntajes registrados</div>
             ) : (
@@ -138,73 +161,91 @@ export default function RankingPage() {
               </>
             )}
           </div>
+
+          <div className="brackets-section" style={{ marginTop: '3rem' }}>
+            <h2 style={{ 
+              fontFamily: 'Anybody', 
+              fontSize: '1.5rem', 
+              fontWeight: '700', 
+              textTransform: 'uppercase', 
+              marginBottom: '1rem' 
+            }}>
+              Camino a la Final
+            </h2>
+            {loading ? <div className="loading">Cargando llaves...</div> : <Brackets partidos={partidos} />}
+          </div>
         </div>
 
         <div className="hero-right">
+          <div className="hero-image-container" style={{ marginBottom: '2rem' }}>
+            <img src={fifaImg} alt="FIFA 2026" style={{ width: '100%', borderRadius: '16px', display: 'block', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }} />
+          </div>
+
           {usuario ? (
-            <Link to="/dashboard" style={{ display: 'block' }}>
-              <img src="/fifa.jpg" alt="FIFA 2026" style={{ width: '100%', borderRadius: '16px', display: 'block' }} />
-            </Link>
+            <div className="dashboard-link-card glass-card" style={{ padding: '2.5rem', borderRadius: '16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--primary)' }}>account_circle</span>
+              <div>
+                <h3 style={{ fontFamily: 'Anybody', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Hola, {usuario.nombre}</h3>
+                <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem' }}>Ya puedes empezar a cargar tus pronósticos.</p>
+              </div>
+              <Link to={usuario.rol === 'admin' ? '/admin' : '/dashboard'} className="btn-primary" style={{ width: '100%', textDecoration: 'none', marginTop: '0.5rem' }}>
+                Ir a mi Dashboard
+              </Link>
+            </div>
           ) : (
           <div className="login-card-inline">
-            <div className="login-card-inner">
-              <h2>Acceso al Sistema</h2>
-              <p className="login-subtitle">Ingresa para gestionar tus pronosticos.</p>
+          <div className="login-card-inner">
+          <h2>Acceso al Sistema</h2>
+          <p className="login-subtitle">Ingresa para gestionar tus pronosticos.</p>
 
-              {loginError && <div className="error-message">{loginError}</div>}
+          {loginError && <div className="error-message">{loginError}</div>}
 
-              {step === 'email' ? (
-                <form onSubmit={handleSolicitarOTP}>
-                  <div className="form-group">
-                    <label>Correo Electronico</label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="usuario@mundial.com"
-                      required
-                      autoFocus
-                    />
-                  </div>
-                  <button type="submit" className="login-submit-btn" disabled={loginLoading}>
-                    {loginLoading ? 'Enviando...' : 'Enviar codigo'}
-                  </button>
-                </form>
-              ) : (
-                <form onSubmit={handleVerificarOTP}>
-                  <div className="form-group">
-                    <label>Codigo de verificacion</label>
-                    <p className="hint">Ingresa el codigo enviado a {email}</p>
-                    <input
-                      type="text"
-                      value={codigo}
-                      onChange={(e) => setCodigo(e.target.value)}
-                      placeholder="123456"
-                      maxLength={6}
-                      required
-                      autoFocus
-                    />
-                  </div>
-                  <button type="submit" className="login-submit-btn" disabled={loginLoading}>
-                    {loginLoading ? 'Verificando...' : 'Ingresar'}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-link"
-                    onClick={() => { setStep('email'); setCodigo(''); setLoginError(''); }}
-                  >
-                    Cambiar email
-                  </button>
-                </form>
-              )}
-
-              <div className="otp-hint">
-                <small>En desarrollo: revisa la consola del backend para ver el codigo OTP</small>
+          {step === 'email' ? (
+            <form onSubmit={handleSolicitarOTP}>
+              <div className="form-group">
+                <label>Correo Electronico</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="usuario@mundial.com"
+                  required
+                  autoFocus
+                />
               </div>
-
-            </div>
-          </div>
+              <button type="submit" className="login-submit-btn" disabled={loginLoading}>
+                {loginLoading ? 'Enviando...' : 'Enviar codigo'}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerificarOTP}>
+              <div className="form-group">
+                <label>Codigo de verificacion</label>
+                <p className="hint">Ingresa el codigo enviado a {email}</p>
+                <input
+                  type="text"
+                  value={codigo}
+                  onChange={(e) => setCodigo(e.target.value)}
+                  placeholder="123456"
+                  maxLength={6}
+                  required
+                  autoFocus
+                />
+              </div>
+              <button type="submit" className="login-submit-btn" disabled={loginLoading}>
+                {loginLoading ? 'Verificando...' : 'Ingresar'}
+              </button>
+              <button
+                type="button"
+                className="btn-link"
+                onClick={() => { setStep('email'); setCodigo(''); setLoginError(''); }}
+              >
+                Cambiar email
+              </button>
+            </form>
           )}
+          </div>
+          </div>          )}
         </div>
       </div>
     </div>

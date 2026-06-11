@@ -41,22 +41,27 @@ router.post('/full-reset', async (req: Request, res: Response): Promise<void> =>
       where: { email: 'admin@prode2026.com' },
       defaults: {
         nombre: 'Administrador',
+        email: 'admin@prode2026.com',
         rol: 'admin'
       }
     });
 
     // 4. Asegurar configuración de puntos
     const configs = [
-      { tipo: 'exacto', puntos: 3 },
-      { tipo: 'diferencia', puntos: 2 },
-      { tipo: 'ganador', puntos: 1 },
-      { tipo: 'error', puntos: 0 }
+      { tipo: 'exacto' as const, puntos: 3 },
+      { tipo: 'diferencia' as const, puntos: 2 },
+      { tipo: 'ganador' as const, puntos: 1 },
+      { tipo: 'error' as const, puntos: 0 }
     ];
 
     for (const c of configs) {
       await ConfiguracionPuntos.findOrCreate({
         where: { tipo: c.tipo },
-        defaults: { puntos: c.puntos, activo: true }
+        defaults: { 
+          tipo: c.tipo,
+          puntos: c.puntos, 
+          activo: true 
+        }
       });
     }
 

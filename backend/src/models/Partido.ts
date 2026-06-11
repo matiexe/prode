@@ -10,25 +10,27 @@ export interface PartidoAttributes {
   fechaHora: Date;
   golesLocal: number | null;
   golesVisitante: number | null;
+  ganadorNombre: string | null;
   estado: 'pendiente' | 'jugando' | 'finalizado';
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-export interface PartidoCreationAttributes extends Optional<PartidoAttributes, 'id' | 'golesLocal' | 'golesVisitante' | 'estado'> {}
+export interface PartidoCreationAttributes extends Optional<PartidoAttributes, 'id' | 'golesLocal' | 'golesVisitante' | 'ganadorNombre' | 'estado'> {}
 
 export class Partido extends Model<PartidoAttributes, PartidoCreationAttributes> implements PartidoAttributes {
-  public id!: number;
-  public fase!: 'grupos' | '16vos' | '8vos' | 'cuartos' | 'semis' | '3er_puesto' | 'final';
-  public grupo!: string | null;
-  public equipoLocal!: string;
-  public equipoVisitante!: string;
-  public fechaHora!: Date;
-  public golesLocal!: number | null;
-  public golesVisitante!: number | null;
-  public estado!: 'pendiente' | 'jugando' | 'finalizado';
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare id: number;
+  declare fase: 'grupos' | '16vos' | '8vos' | 'cuartos' | 'semis' | '3er_puesto' | 'final';
+  declare grupo: string | null;
+  declare equipoLocal: string;
+  declare equipoVisitante: string;
+  declare fechaHora: Date;
+  declare golesLocal: number | null;
+  declare golesVisitante: number | null;
+  declare ganadorNombre: string | null;
+  declare estado: 'pendiente' | 'jugando' | 'finalizado';
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 Partido.init(
@@ -62,11 +64,15 @@ Partido.init(
       allowNull: false,
     },
     golesLocal: {
-      type: DataTypes.TINYINT,
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     golesVisitante: {
-      type: DataTypes.TINYINT,
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    ganadorNombre: {
+      type: DataTypes.STRING(100),
       allowNull: true,
     },
     estado: {

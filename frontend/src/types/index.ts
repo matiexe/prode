@@ -16,6 +16,7 @@ export interface Partido {
   fechaHora: string;
   golesLocal: number | null;
   golesVisitante: number | null;
+  ganadorNombre: string | null;
   estado: 'pendiente' | 'jugando' | 'finalizado';
 }
 

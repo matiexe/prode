@@ -86,4 +86,6 @@ Asegúrate de que estas variables estén en Vercel para todos los ambientes:
 - `NODE_ENV`: Vercel lo pone en `production` automáticamente en la nube.
 
 ---
+**Nota de Rama:** Esta versión corresponde a la rama `develop` para pruebas.
+---
 *Documento generado por Gemini CLI para el proyecto Prode Mundial 2026.*
