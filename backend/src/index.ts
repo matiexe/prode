@@ -59,30 +59,16 @@ async function initializeDb() {
     // Esto ayuda en entornos como Vercel Postgres donde alter:true a veces no detecta cambios
     try {
       const queryInterface = sequelize.getQueryInterface();
-      const tableDefinition = await queryInterface.describeTable('partidos');
       
-      if (!tableDefinition.ganador_nombre) {
-        console.log('[DB] Agregando columna faltante "ganador_nombre" a la tabla "partidos"...');
-        await queryInterface.addColumn('partidos', 'ganador_nombre', {
-          type: DataTypes.STRING(100),
-          allowNull: true
-        });
-        console.log('[DB] Columna "ganador_nombre" agregada.');
-      }
+      // Intentos de SQL puro para máxima compatibilidad
+      console.log('[DB] Ejecutando parches de emergencia SQL...');
+      await sequelize.query('ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "ganador_nombre" VARCHAR(255)');
+      await sequelize.query('ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_local" INTEGER');
+      await sequelize.query('ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_visitante" INTEGER');
+      await sequelize.query('ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "estado" VARCHAR(20) DEFAULT \'pendiente\'');
+      console.log('[DB] Parches SQL completados.');
 
-      if (!tableDefinition.goles_local) {
-        await queryInterface.addColumn('partidos', 'goles_local', {
-          type: DataTypes.INTEGER,
-          allowNull: true
-        });
-      }
-
-      if (!tableDefinition.goles_visitante) {
-        await queryInterface.addColumn('partidos', 'goles_visitante', {
-          type: DataTypes.INTEGER,
-          allowNull: true
-        });
-      }
+      const tableDefinition = await queryInterface.describeTable('partidos');
 
       // Verificación de tabla codigos_otp
       try {
