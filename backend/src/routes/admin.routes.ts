@@ -30,4 +30,34 @@ router.get('/stats', async (_req: AuthRequest, res: Response): Promise<void> => 
   }
 });
 
+router.post('/db-fix', async (_req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { sequelize } = await import('../config/database');
+    console.log('[DB-FIX] Iniciando reparación manual de esquema...');
+    
+    const results: any = {};
+    
+    const queries = [
+      { name: 'ganador_nombre', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "ganador_nombre" VARCHAR(255)' },
+      { name: 'goles_local', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_local" INTEGER' },
+      { name: 'goles_visitante', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_visitante" INTEGER' },
+      { name: 'estado', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "estado" VARCHAR(20) DEFAULT \'pendiente\'' }
+    ];
+
+    for (const q of queries) {
+      try {
+        await sequelize.query(q.sql);
+        results[q.name] = 'OK (o ya existía)';
+      } catch (err: any) {
+        results[q.name] = `ERROR: ${err.message}`;
+      }
+    }
+
+    res.json({ mensaje: 'Proceso de reparación completado', detalles: results });
+  } catch (error: any) {
+    console.error('Error en db-fix:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
