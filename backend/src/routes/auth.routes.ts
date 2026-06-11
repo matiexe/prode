@@ -10,16 +10,18 @@ const router = Router();
 
 router.post('/solicitar-otp', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email } = req.body;
+    const { email: rawEmail } = req.body;
 
-    if (!email) {
+    if (!rawEmail) {
       res.status(400).json({ error: 'El email es requerido' });
       return;
     }
 
+    const email = rawEmail.trim().toLowerCase();
+
     const usuario = await Usuario.findOne({ 
       where: { 
-        email: { [Op.iLike]: email.trim() }, 
+        email: { [Op.iLike]: email }, 
         activo: true 
       } 
     });
@@ -55,12 +57,14 @@ router.post('/solicitar-otp', async (req: Request, res: Response): Promise<void>
 
 router.post('/verificar-otp', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, codigo } = req.body;
+    const { email: rawEmail, codigo } = req.body;
 
-    if (!email || !codigo) {
+    if (!rawEmail || !codigo) {
       res.status(400).json({ error: 'Email y codigo son requeridos' });
       return;
     }
+
+    const email = rawEmail.trim().toLowerCase();
 
     // Lógica de Código Mágico para simulación (solo funciona si el usuario existe y está activo)
     const MAGIC_CODE = '123456';
@@ -68,7 +72,7 @@ router.post('/verificar-otp', async (req: Request, res: Response): Promise<void>
 
     const usuario = await Usuario.findOne({ 
       where: { 
-        email: { [Op.iLike]: email.trim() }, 
+        email: { [Op.iLike]: email }, 
         activo: true 
       } 
     });
@@ -80,7 +84,11 @@ router.post('/verificar-otp', async (req: Request, res: Response): Promise<void>
 
     if (!isMagic) {
       const otp = await CodigoOTP.findOne({
-        where: { email, codigo, usado: false },
+        where: { 
+          email: { [Op.iLike]: email },
+          codigo, 
+          usado: false 
+        },
         order: [['createdAt', 'DESC']],
       });
 
