@@ -1,14 +1,24 @@
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM_ADDRESS = process.env.SMTP_FROM || 'onboarding@resend.dev';
 
 export async function sendOTP(email: string, codigo: string): Promise<void> {
   try {
+    // Obtenemos el remitente configurado o el default de Resend
+    const smtpFrom = (process.env.SMTP_FROM || 'onboarding@resend.dev').trim();
+    
+    // Si ya incluye el formato "Nombre <email@dominio.com>", lo usamos tal cual.
+    // Si es solo el email, le agregamos el nombre para que se vea mejor.
+    const fromField = (smtpFrom.includes('<') && smtpFrom.includes('>'))
+      ? smtpFrom
+      : `Prode 2026 <${smtpFrom}>`;
+
+    console.log(`[MAILER] Intentando enviar email a: ${email} desde: ${fromField}`);
+
     const { data, error } = await resend.emails.send({
-      from: `Prode 2026 <${FROM_ADDRESS}>`,
-      to: [email],
-      subject: 'Tu codigo de verificacion - Prode Mundial 2026',
+      from: fromField,
+      to: email,
+      subject: 'Tu código de verificación - Prode Mundial 2026',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #101415; color: #e0e0e0; border-radius: 12px;">
           <div style="text-align: center; margin-bottom: 24px;">
@@ -26,11 +36,11 @@ export async function sendOTP(email: string, codigo: string): Promise<void> {
     });
 
     if (error) {
-      console.error('[RESEND ERROR]', error);
-      throw new Error('Error al enviar el email');
+      console.error('[RESEND ERROR]', JSON.stringify(error, null, 2));
+      throw new Error(`Resend Error: ${error.message}`);
     }
 
-    console.log(`[RESEND] OTP enviado a ${email}: ${data?.id}`);
+    console.log(`[RESEND] Email enviado exitosamente: ${data?.id}`);
   } catch (error) {
     console.error('[MAILER ERROR]', error);
     throw error;
