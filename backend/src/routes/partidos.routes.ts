@@ -30,6 +30,7 @@ partidosRouter.get('/', authenticate, async (req: Request, res: Response): Promi
 
 partidosAdminRouter.post('/generar', async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
+    console.log('[FIXTURE] Iniciando generación de fixture (Versión: bulkCreate-v3)...');
     const existingCount = await Partido.count();
     if (existingCount > 0) {
       res.status(409).json({ error: 'El fixture ya fue generado. Elimina los partidos existentes primero.' });
