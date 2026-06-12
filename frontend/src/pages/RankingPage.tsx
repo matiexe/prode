@@ -148,9 +148,6 @@ export default function RankingPage() {
                                 <span className="ranking-user-name">{entry.nombre}</span>
                               </div>
                             </td>
-                            <td>
-                              <div className="ranking-aciertos">{entry.pronosticos} PRONOSTICOS</div>
-                            </td>
                             <td className="ranking-pts">{entry.puntos.toLocaleString()}</td>
                           </tr>
                         ))}

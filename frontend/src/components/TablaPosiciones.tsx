@@ -33,9 +33,6 @@ export default function TablaPosiciones({ ranking, loading }: TablaPosicionesPro
                   <span className="ranking-user-name">{entry.nombre}</span>
                 </div>
               </td>
-              <td>
-                <span className="ranking-aciertos">{entry.pronosticos} PRONOSTICOS</span>
-              </td>
               <td className="ranking-pts">{entry.puntos.toLocaleString()}</td>
             </tr>
           ))}
