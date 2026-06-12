@@ -51,7 +51,7 @@ export default function FormUsuario({ onSubmit, onCancel, usuario }: FormUsuario
       </div>
       <div className="form-group">
         <label htmlFor="rol">Rol</label>
-        <select id="rol" value={rol} onChange={(e) => setRol(e.target.value)}>
+        <select id="rol" value={rol} onChange={(e) => setRol(e.target.value as 'admin' | 'user')}>
           <option value="user">Usuario</option>
           <option value="admin">Administrador</option>
         </select>
