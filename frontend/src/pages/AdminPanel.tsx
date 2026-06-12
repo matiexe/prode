@@ -101,7 +101,7 @@ export default function AdminPanel() {
   };
 
 
-  const handleCrearOEditarUsuario = async (nombre: string, email: string, rol: string) => {
+  const handleCrearOEditarUsuario = async (nombre: string, email: string, rol: 'admin' | 'user') => {
     try {
       if (usuarioEditando) {
         await actualizarUsuario(usuarioEditando.id, { nombre, email, rol });

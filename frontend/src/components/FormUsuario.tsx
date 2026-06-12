@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Usuario } from '../types';
 
 interface FormUsuarioProps {
-  onSubmit: (nombre: string, email: string, rol: string) => Promise<void>;
+  onSubmit: (nombre: string, email: string, rol: 'admin' | 'user') => Promise<void>;
   onCancel: () => void;
   usuario?: Usuario | null;
 }
@@ -10,7 +10,7 @@ interface FormUsuarioProps {
 export default function FormUsuario({ onSubmit, onCancel, usuario }: FormUsuarioProps) {
   const [nombre, setNombre] = useState(usuario?.nombre || '');
   const [email, setEmail] = useState(usuario?.email || '');
-  const [rol, setRol] = useState(usuario?.rol || 'user');
+  const [rol, setRol] = useState<'admin' | 'user'>(usuario?.rol || 'user');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 

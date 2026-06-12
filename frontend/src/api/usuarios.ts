@@ -6,7 +6,7 @@ export async function listarUsuarios(): Promise<Usuario[]> {
   return data;
 }
 
-export async function crearUsuario(nombre: string, email: string, rol?: string): Promise<Usuario> {
+export async function crearUsuario(nombre: string, email: string, rol?: 'admin' | 'user'): Promise<Usuario> {
   const { data } = await apiClient.post('/admin/usuarios', { nombre, email, rol });
   return data;
 }
