@@ -204,6 +204,8 @@ export default function Dashboard() {
     (p) => p.estado === 'pendiente' && new Date(p.fechaHora) > new Date()
   );
 
+  const proximosPartidos = partidosPendientes.slice(0, 2);
+
   const partidosPronosticados = partidosPendientes.filter(
     (p) => pronosticos.some((pr) => pr.partidoId === p.id)
   );
@@ -227,6 +229,35 @@ export default function Dashboard() {
         <div className={`toast ${mensaje.tipo}`}>
           <span>{mensaje.tipo === 'success' ? '✓' : '✕'}</span> {mensaje.texto}
         </div>
+      )}
+
+      {proximosPartidos.length > 0 && (
+        <section className="proximos-section" style={{ marginBottom: '2.5rem' }}>
+          <header style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(0, 229, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', color: '#00e5ff' }}>schedule</span>
+            </div>
+            <h2 style={{ fontSize: '0.8rem', fontFamily: 'Anybody', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 800 }}>
+              Próximos Partidos
+            </h2>
+          </header>
+          <div className="partidos-grid">
+            {proximosPartidos.map((p) => {
+              const miProno = getPronostico(p.id);
+              return (
+                <PartidoCard
+                  key={`next-${p.id}`}
+                  partido={p}
+                  golesLocal={miProno?.local}
+                  golesVisitante={miProno?.visitante}
+                  puntosObtenidos={miProno?.puntos}
+                  onGuardar={(local, visitante) => handleGuardar(p.id, local, visitante)}
+                  onInputChange={handleInputChange}
+                />
+              );
+            })}
+          </div>
+        </section>
       )}
 
       {faltanPronosticar > 0 && (

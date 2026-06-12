@@ -21,6 +21,7 @@ export default function AdminPanel() {
 
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [mostrarForm, setMostrarForm] = useState(false);
 
   const [partidos, setPartidos] = useState<Partido[]>([]);
@@ -100,11 +101,26 @@ export default function AdminPanel() {
   };
 
 
-  const handleCrearUsuario = async (nombre: string, email: string, rol: string) => {
-    await crearUsuario(nombre, email, rol);
-    setMostrarForm(false);
-    fetchUsuarios();
-    setMensaje('Usuario creado correctamente');
+  const handleCrearOEditarUsuario = async (nombre: string, email: string, rol: string) => {
+    try {
+      if (usuarioEditando) {
+        await actualizarUsuario(usuarioEditando.id, { nombre, email, rol });
+        setMensaje('Usuario actualizado correctamente');
+      } else {
+        await crearUsuario(nombre, email, rol);
+        setMensaje('Usuario creado correctamente');
+      }
+      setMostrarForm(false);
+      setUsuarioEditando(null);
+      fetchUsuarios();
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
+
+  const handleEditClick = (u: Usuario) => {
+    setUsuarioEditando(u);
+    setMostrarForm(true);
   };
 
   const handleDesactivar = async (id: number) => {
@@ -361,7 +377,7 @@ export default function AdminPanel() {
                 <h2>Gestión de Usuarios</h2>
                 <p className="subtitle" style={{ fontSize: '0.85rem' }}>Lista de participantes y administradores.</p>
               </div>
-              <button className="admin-btn primary" onClick={() => setMostrarForm(true)}>
+              <button className="admin-btn primary" onClick={() => { setUsuarioEditando(null); setMostrarForm(true); }}>
                 <span className="material-symbols-outlined">person_add</span>
                 Nuevo usuario
               </button>
@@ -370,13 +386,15 @@ export default function AdminPanel() {
             {mostrarForm && (
               <div className="form-usuario glass-card" style={{ marginBottom: '2rem' }}>
                 <FormUsuario
-                  onSubmit={handleCrearUsuario}
-                  onCancel={() => setMostrarForm(false)}
+                  onSubmit={handleCrearOEditarUsuario}
+                  onCancel={() => { setMostrarForm(false); setUsuarioEditando(null); }}
+                  usuario={usuarioEditando}
                 />
               </div>
             )}
 
-            <div className="table-responsive">
+            {/* Desktop View */}
+            <div className="table-responsive desktop-only">
               <table className="admin-table">
                 <thead>
                   <tr>
@@ -401,16 +419,51 @@ export default function AdminPanel() {
                         </span>
                       </td>
                       <td style={{ textAlign: 'right' }}>
-                        {u.activo && u.id !== usuario?.id && (
-                          <button className="admin-btn danger" onClick={() => handleDesactivar(u.id)}>
-                            Desactivar
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                          <button className="admin-btn secondary small" onClick={() => handleEditClick(u)}>
+                            Editar
                           </button>
-                        )}
+                          {u.activo && u.id !== usuario?.id && (
+                            <button className="admin-btn danger small" onClick={() => handleDesactivar(u.id)}>
+                              Desactivar
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile View */}
+            <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {usuarios.map((u) => (
+                <div key={u.id} className="glass-card" style={{ padding: '1.25rem', borderRadius: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>{u.nombre}</h3>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--outline)', margin: '0.25rem 0' }}>{u.email}</p>
+                    </div>
+                    <span className={`status-badge ${u.activo ? 'active' : 'inactive'}`}>
+                      {u.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="fase-tag">{u.rol}</span>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button className="admin-btn secondary small" onClick={() => handleEditClick(u)}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
+                      </button>
+                      {u.activo && u.id !== usuario?.id && (
+                        <button className="admin-btn danger small" onClick={() => handleDesactivar(u.id)}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>block</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         )}
