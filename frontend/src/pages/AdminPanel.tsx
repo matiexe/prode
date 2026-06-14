@@ -311,8 +311,11 @@ export default function AdminPanel() {
 
         {tab === 'dashboard' && (
           <section className="admin-section">
-            <header className="admin-header" style={{ borderLeft: '4px solid var(--primary)', paddingLeft: '1.5rem', marginBottom: '2.5rem' }}>
-              <h1>Dashboard Admin</h1>
+            <header className="admin-header" style={{ marginBottom: '2.5rem' }}>
+              <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '2rem' }}>monitoring</span>
+                Dashboard Admin
+              </h1>
               <p className="subtitle">Resumen general del estado del sistema y participación.</p>
             </header>
 
@@ -324,47 +327,65 @@ export default function AdminPanel() {
               </div>
             ) : stats ? (
               <div className="admin-config-grid">
-                <div className="config-card" style={{ borderLeft: '4px solid var(--primary)' }}>
-                  <label>Usuarios Totales</label>
-                  <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'Anybody' }}>
-                    {stats.totalUsuarios}
+                <div className="config-card glass-card" style={{ borderLeft: '4px solid var(--primary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <label>Usuarios Totales</label>
+                      <div className="stat-value">{stats.totalUsuarios}</div>
+                    </div>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--primary)', opacity: 0.5 }}>group</span>
                   </div>
-                  <p className="hint">Total registrados en el sistema.</p>
+                  <p className="hint">Registrados en total.</p>
                 </div>
-                <div className="config-card" style={{ borderLeft: '4px solid var(--tertiary)' }}>
-                  <label>Usuarios Activos</label>
-                  <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--tertiary)', fontFamily: 'Anybody' }}>
-                    {stats.usuariosActivos}
+                <div className="config-card glass-card" style={{ borderLeft: '4px solid var(--tertiary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <label>Usuarios Activos</label>
+                      <div className="stat-value">{stats.usuariosActivos}</div>
+                    </div>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--tertiary)', opacity: 0.5 }}>person_check</span>
                   </div>
-                  <p className="hint">Usuarios con cuenta habilitada.</p>
+                  <p className="hint">Con cuenta habilitada.</p>
                 </div>
-                <div className="config-card" style={{ borderLeft: '4px solid #00F0FF' }}>
-                  <label>Pronósticos</label>
-                  <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#00F0FF', fontFamily: 'Anybody' }}>
-                    {stats.totalPronosticos}
+                <div className="config-card glass-card" style={{ borderLeft: '4px solid #00F0FF' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <label>Pronósticos</label>
+                      <div className="stat-value">{stats.totalPronosticos}</div>
+                    </div>
+                    <span className="material-symbols-outlined" style={{ color: '#00F0FF', opacity: 0.5 }}>analytics</span>
                   </div>
-                  <p className="hint">Total de predicciones cargadas.</p>
+                  <p className="hint">Predicciones cargadas.</p>
                 </div>
-                <div className="config-card" style={{ borderLeft: '4px solid var(--primary-fixed)' }}>
-                  <label>Partidos</label>
-                  <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--primary-fixed)', fontFamily: 'Anybody' }}>
-                    {stats.partidosFinalizados} / {stats.totalPartidos}
+                <div className="config-card glass-card" style={{ borderLeft: '4px solid var(--primary-fixed)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <label>Partidos</label>
+                      <div className="stat-value">{stats.partidosFinalizados} / {stats.totalPartidos}</div>
+                    </div>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--primary-fixed)', opacity: 0.5 }}>sports_soccer</span>
                   </div>
-                  <p className="hint">Finalizados vs Total del torneo.</p>
+                  <p className="hint">Finalizados vs Total.</p>
                 </div>
               </div>
             ) : (
               <div className="empty glass-card" style={{ padding: '3rem', textAlign: 'center', borderRadius: '16px' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '3rem', opacity: 0.3, marginBottom: '1rem' }}>error</span>
-                <p>No se pudieron cargar las estadísticas. Revisa la conexión con el servidor.</p>
+                <p>No se pudieron cargar las estadísticas.</p>
               </div>
             )}
 
             <div className="glass-card" style={{ padding: '2rem', borderRadius: '16px', marginTop: '2rem' }}>
-              <h3 style={{ fontFamily: 'Anybody', marginBottom: '1rem', textTransform: 'uppercase' }}>Acciones Rápidas</h3>
+              <h3 style={{ fontFamily: 'Anybody', fontSize: '0.9rem', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Acciones Rápidas</h3>
               <div className="admin-actions">
-                <button className="admin-btn primary" onClick={() => setTab('cargar')}>Cargar Resultados</button>
-                <button className="admin-btn secondary" onClick={() => setTab('usuarios')}>Gestionar Usuarios</button>
+                <button className="admin-btn primary" onClick={() => setTab('cargar')}>
+                  <span className="material-symbols-outlined">edit_square</span>
+                  Cargar Resultados
+                </button>
+                <button className="admin-btn secondary" onClick={() => setTab('usuarios')}>
+                  <span className="material-symbols-outlined">manage_accounts</span>
+                  Gestionar Usuarios
+                </button>
               </div>
             </div>
           </section>
@@ -421,11 +442,11 @@ export default function AdminPanel() {
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                           <button className="admin-btn secondary small" onClick={() => handleEditClick(u)}>
-                            Editar
+                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
                           </button>
                           {u.activo && u.id !== usuario?.id && (
                             <button className="admin-btn danger small" onClick={() => handleDesactivar(u.id)}>
-                              Desactivar
+                              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>block</span>
                             </button>
                           )}
                         </div>
@@ -451,13 +472,13 @@ export default function AdminPanel() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span className="fase-tag">{u.rol}</span>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="admin-btn secondary small" onClick={() => handleEditClick(u)}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <button className="admin-btn secondary" style={{ padding: '0.5rem' }} onClick={() => handleEditClick(u)}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>edit</span>
                       </button>
                       {u.activo && u.id !== usuario?.id && (
-                        <button className="admin-btn danger small" onClick={() => handleDesactivar(u.id)}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>block</span>
+                        <button className="admin-btn danger" style={{ padding: '0.5rem' }} onClick={() => handleDesactivar(u.id)}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>block</span>
                         </button>
                       )}
                     </div>
@@ -473,33 +494,34 @@ export default function AdminPanel() {
             <header className="section-header">
               <div>
                 <h2>Cargar Resultados</h2>
-                <p className="subtitle" style={{ fontSize: '0.85rem' }}>Ingresa los marcadores reales para calcular puntos.</p>
+                <p className="subtitle" style={{ fontSize: '0.85rem' }}>Ingresa los marcadores reales del torneo.</p>
               </div>
               <div className="admin-actions">
-                <button className="admin-btn primary" onClick={handleGenerarFixture} disabled={generando}>
-                  {generando ? 'Generando...' : 'Generar fixture'}
+                <button className="admin-btn primary small" onClick={handleGenerarFixture} disabled={generando}>
+                  {generando ? '...' : 'Generar fixture'}
                 </button>
                 {faseFiltro !== 'final' && faseFiltro !== '3er_puesto' && (
                   <button 
-                    className="admin-btn secondary" 
+                    className="admin-btn secondary small" 
                     onClick={handleCerrarFase} 
                     disabled={cerrandoFase}
                   >
-                    🏆 Cerrar {faseFiltro === 'grupos' ? 'fase de grupos' : faseFiltro}
+                    Cerrar {faseFiltro === 'grupos' ? 'Grupos' : faseFiltro}
                   </button>
                 )}
-                <button className="admin-btn danger" onClick={handleEliminarFixture} disabled={eliminando}>
-                  Borrar fixture
+                <button className="admin-btn danger small" onClick={handleEliminarFixture} disabled={eliminando}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>delete</span>
                 </button>
               </div>
             </header>
 
-            <nav className="fase-tabs" style={{ marginBottom: '2rem' }}>
+            <nav className="fase-tabs" style={{ marginBottom: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
               {['grupos', '16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final'].map((f) => (
                 <button
                   key={f}
                   className={`fase-tab ${faseFiltro === f ? 'active' : ''}`}
                   onClick={() => { setFaseFiltro(f); setGrupoFiltro(''); fetchPartidos(f, ''); }}
+                  style={{ whiteSpace: 'nowrap' }}
                 >
                   {f === 'grupos' ? 'Grupos' : f}
                 </button>
@@ -522,29 +544,32 @@ export default function AdminPanel() {
               </div>
             )}
 
-            <div className="admin-matches-grid">
+            <div className="partidos-grid">
               {partidos.filter((p) => p.estado !== 'finalizado').map((p) => (
-                <article key={p.id} className="admin-match-card">
-                  <div className="match-meta">
-                    <span className="fase-tag">{p.fase}</span>
-                    {p.grupo && <span className="grupo-tag">Grupo {p.grupo}</span>}
+                <article key={p.id} className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <span className="fase-tag">{p.fase} {p.grupo ? `- Grupo ${p.grupo}` : ''}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--outline)' }}>
+                      {new Date(p.fechaHora).toLocaleDateString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </span>
                   </div>
-                  <div className="team-row">
-                    <div className="team-info">
-                      {getFlagUrl(p.equipoLocal) && <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} alt="" />}
-                      {p.equipoLocal}
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', margin: '1rem 0' }}>
+                    <div style={{ textAlign: 'center', flex: 1 }}>
+                      {getFlagUrl(p.equipoLocal) && <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} alt="" style={{ width: '32px', height: '24px', marginBottom: '0.5rem' }} />}
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>{p.equipoLocal}</div>
                     </div>
-                    <span className="vs">vs</span>
-                    <div className="team-info">
-                      {p.equipoVisitante}
-                      {getFlagUrl(p.equipoVisitante) && <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} alt="" />}
+                    <span style={{ fontWeight: 800, color: 'var(--outline)', opacity: 0.5 }}>VS</span>
+                    <div style={{ textAlign: 'center', flex: 1 }}>
+                      {getFlagUrl(p.equipoVisitante) && <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} alt="" style={{ width: '32px', height: '24px', marginBottom: '0.5rem' }} />}
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>{p.equipoVisitante}</div>
                     </div>
                   </div>
                   <button 
                     className="admin-btn primary" 
-                    style={{ width: '100%', marginTop: '1.5rem' }}
+                    style={{ width: '100%', marginTop: '1rem' }}
                     onClick={() => setPartidoModal(p)}
                   >
+                    <span className="material-symbols-outlined">add_circle</span>
                     Cargar Resultado
                   </button>
                 </article>
@@ -570,40 +595,35 @@ export default function AdminPanel() {
               </div>
             </header>
 
-            <nav className="fase-tabs" style={{ marginBottom: '2rem' }}>
+            <nav className="fase-tabs" style={{ marginBottom: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
               {['grupos', '16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final'].map((f) => (
                 <button
                   key={f}
                   className={`fase-tab ${faseFiltro === f ? 'active' : ''}`}
                   onClick={() => { setFaseFiltro(f); setGrupoFiltro(''); fetchPartidos(f, ''); }}
+                  style={{ whiteSpace: 'nowrap' }}
                 >
                   {f === 'grupos' ? 'Grupos' : f}
                 </button>
               ))}
             </nav>
 
-            <div className="admin-matches-grid">
+            <div className="partidos-grid">
               {partidos.filter((p) => p.estado === 'finalizado').map((p) => (
-                <article key={p.id} className="admin-match-card finalizado">
-                  <div className="match-meta">
-                    <span className="fase-tag">{p.fase}</span>
-                    <span className="fecha">{new Date(p.fechaHora).toLocaleDateString()}</span>
+                <article key={p.id} className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', opacity: 0.8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <span className="fase-tag" style={{ background: 'rgba(0, 228, 118, 0.1)', color: 'var(--primary)' }}>FINALIZADO</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--outline)' }}>{new Date(p.fechaHora).toLocaleDateString()}</span>
                   </div>
-                  <div className="team-row">
-                    <div className="team-info">
-                      {getFlagUrl(p.equipoLocal) && <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} alt="" />}
-                      {p.equipoLocal}
-                    </div>
-                    <div className="score-display">
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', margin: '1rem 0' }}>
+                    <div style={{ textAlign: 'right', flex: 1, fontSize: '0.85rem', fontWeight: 700 }}>{p.equipoLocal}</div>
+                    <div style={{ background: 'var(--surface-container-high)', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '1.25rem', fontWeight: 900, fontFamily: 'Anybody' }}>
                       {p.golesLocal} - {p.golesVisitante}
                     </div>
-                    <div className="team-info">
-                      {p.equipoVisitante}
-                      {getFlagUrl(p.equipoVisitante) && <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} alt="" />}
-                    </div>
+                    <div style={{ textAlign: 'left', flex: 1, fontSize: '0.85rem', fontWeight: 700 }}>{p.equipoVisitante}</div>
                   </div>
                   {p.ganadorNombre && (
-                    <div style={{ textAlign: 'center', marginTop: '0.75rem', fontSize: '0.7rem', color: 'var(--tertiary)', fontFamily: 'Anybody', fontWeight: 700, textTransform: 'uppercase' }}>
+                    <div style={{ textAlign: 'center', marginTop: '0.75rem', fontSize: '0.65rem', color: 'var(--tertiary)', fontFamily: 'Anybody', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                       Ganador: {p.ganadorNombre}
                     </div>
                   )}
@@ -618,50 +638,50 @@ export default function AdminPanel() {
             <header className="section-header">
               <div>
                 <h2>Sistema de Puntuación</h2>
-                <p className="subtitle" style={{ fontSize: '0.85rem' }}>Define los puntos que los usuarios ganan por sus pronósticos.</p>
+                <p className="subtitle" style={{ fontSize: '0.85rem' }}>Define los puntos que los usuarios ganan.</p>
               </div>
             </header>
             
             <form onSubmit={handleActualizarConfig}>
               <div className="admin-config-grid">
-                <div className="config-card">
+                <div className="config-card glass-card">
                   <label>Resultado Exacto</label>
                   <input 
                     type="number" 
                     value={configPuntos.exacto} 
                     onChange={(e) => setConfigPuntos({ ...configPuntos, exacto: parseInt(e.target.value, 10) || 0 })} 
                   />
-                  <p className="hint">Puntos por acertar el marcador exacto.</p>
+                  <p className="hint">Acierto marcador exacto.</p>
                 </div>
-                <div className="config-card">
+                <div className="config-card glass-card">
                   <label>Diferencia de Goles</label>
                   <input 
                     type="number" 
                     value={configPuntos.diferencia} 
                     onChange={(e) => setConfigPuntos({ ...configPuntos, diferencia: parseInt(e.target.value, 10) || 0 })} 
                   />
-                  <p className="hint">Acertar ganador y diferencia (ej: pusiste 2-0 y fue 3-1).</p>
+                  <p className="hint">Ganador y diferencia.</p>
                 </div>
-                <div className="config-card">
+                <div className="config-card glass-card">
                   <label>Solo Ganador</label>
                   <input 
                     type="number" 
                     value={configPuntos.ganador} 
                     onChange={(e) => setConfigPuntos({ ...configPuntos, ganador: parseInt(e.target.value, 10) || 0 })} 
                   />
-                  <p className="hint">Puntos por acertar solo quién gana o si hay empate.</p>
+                  <p className="hint">Acierto solo resultado.</p>
                 </div>
-                <div className="config-card">
+                <div className="config-card glass-card">
                   <label>Error</label>
                   <input 
                     type="number" 
                     value={configPuntos.error} 
                     onChange={(e) => setConfigPuntos({ ...configPuntos, error: parseInt(e.target.value, 10) || 0 })} 
                   />
-                  <p className="hint">Puntos por pronóstico totalmente fallido.</p>
+                  <p className="hint">Pronóstico fallido.</p>
                 </div>
               </div>
-              <button type="submit" className="admin-btn primary" style={{ padding: '1rem 3rem' }}>
+              <button type="submit" className="admin-btn primary" style={{ padding: '1rem 3rem', marginTop: '2rem' }}>
                 Guardar Configuración
               </button>
             </form>
