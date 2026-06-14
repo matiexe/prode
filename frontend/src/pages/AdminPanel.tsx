@@ -5,8 +5,8 @@ import { useAuth } from '../contexts/useAuth';
 import { listarUsuarios, crearUsuario, desactivarUsuario, actualizarUsuario } from '../api/usuarios';
 import { listarPartidos, generarFixture, eliminarFixture, cargarResultado, cerrarFase } from '../api/partidos';
 import { obtenerConfiguracion, actualizarConfiguracion } from '../api/configuracion';
-import { obtenerAdminStats } from '../api/admin';
-import type { AdminStats } from '../api/admin';
+import { obtenerAdminStats, obtenerAdminInsights } from '../api/admin';
+import type { AdminStats, AdminInsights } from '../api/admin';
 import { getFlagUrl } from '../utils/flags';
 import UserAvatar from '../components/UserAvatar';
 import FormUsuario from '../components/FormUsuario';
@@ -21,6 +21,7 @@ export default function AdminPanel() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [insights, setInsights] = useState<AdminInsights | null>(null);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -34,6 +35,7 @@ export default function AdminPanel() {
 
   const [mensaje, setMensaje] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingInsights, setLoadingInsights] = useState(false);
   const [generando, setGenerando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
   const [cerrandoFase, setCerrandoFase] = useState(false);
@@ -42,7 +44,10 @@ export default function AdminPanel() {
     if (!usuario) return;
     setSidebarOpen(false); // Close sidebar on tab change (mobile)
     
-    if (tab === 'dashboard') fetchStats();
+    if (tab === 'dashboard') {
+      fetchStats();
+      fetchInsights();
+    }
     else if (tab === 'usuarios') fetchUsuarios();
     else if (tab === 'cargar' || tab === 'finalizados') fetchPartidos();
     else if (tab === 'configuracion') fetchConfig();
@@ -56,6 +61,19 @@ export default function AdminPanel() {
       setStats(data);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
+  };
+
+  const fetchInsights = async () => {
+    setLoadingInsights(true);
+    try {
+      const data = await obtenerAdminInsights();
+      console.log('[ADMIN] Insights cargados:', data);
+      setInsights(data);
+    } catch (err) { 
+      console.error('Error al cargar insights:', err); 
+    } finally {
+      setLoadingInsights(false);
+    }
   };
 
   const fetchUsuarios = async () => {
@@ -374,6 +392,92 @@ export default function AdminPanel() {
                     <p className="hint">Finalizados vs Total.</p>
                   </div>
                 </div>
+
+                {/* Nuevas Secciones de Insights */}
+                {loadingInsights && (
+                  <div className="admin-grid-v2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginTop: '2rem' }}>
+                    {[1, 2, 3].map(i => <div key={i} className="skeleton-card" style={{ height: '200px' }}></div>)}
+                  </div>
+                )}
+
+                {!loadingInsights && insights && (
+                  <div className="admin-grid-v2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginTop: '2rem' }}>
+                    
+                    {/* El Oráculo */}
+                    <div className="glass-card" style={{ padding: '2rem', borderRadius: '20px', borderTop: '4px solid #ffcc00' }}>
+                      <header style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span className="material-symbols-outlined" style={{ color: '#ffcc00' }}>auto_awesome</span>
+                        <h3 style={{ fontFamily: 'Anybody', fontSize: '0.9rem', textTransform: 'uppercase', margin: 0 }}>El Oráculo (Tendencias)</h3>
+                      </header>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--outline)' }}>Favorito Campeón</span>
+                          <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{insights.oraculo.favorito}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--outline)' }}>Partido más dudoso</span>
+                          <span style={{ fontWeight: 700, fontSize: '0.8rem', textAlign: 'right', maxWidth: '150px' }}>{insights.oraculo.partidoMasEmpatado}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--outline)' }}>Marcador popular</span>
+                          <span style={{ fontWeight: 900, color: 'var(--primary)', fontSize: '1.1rem' }}>{insights.oraculo.marcadorComun}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Rendimiento Global */}
+                    <div className="glass-card" style={{ padding: '2rem', borderRadius: '20px', borderTop: '4px solid #00e476' }}>
+                      <header style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span className="material-symbols-outlined" style={{ color: '#00e476' }}>speed</span>
+                        <h3 style={{ fontFamily: 'Anybody', fontSize: '0.9rem', textTransform: 'uppercase', margin: 0 }}>Calidad de Juego</h3>
+                      </header>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--outline)' }}>Promedio de Puntos</span>
+                          <span style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--on-surface)' }}>{insights.calidad.promedioPuntos} <small style={{ fontSize: '0.6rem', opacity: 0.5 }}>pts/u</small></span>
+                        </div>
+                        <div style={{ padding: '1rem', background: 'rgba(0, 228, 118, 0.05)', borderRadius: '12px', border: '1px solid rgba(0, 228, 118, 0.1)' }}>
+                          <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: '#00e476', marginBottom: '0.5rem' }}>Mayor Efectividad</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{insights.calidad.mejorEfectividad.nombre}</span>
+                            <span style={{ fontWeight: 900, fontSize: '1.1rem' }}>{insights.calidad.mejorEfectividad.porcentaje}% <small style={{ fontSize: '0.6rem', opacity: 0.5 }}>🎯</small></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Monitoreo Técnico */}
+                    <div className="glass-card" style={{ padding: '2rem', borderRadius: '20px', borderTop: '4px solid #b1c6f9' }}>
+                      <header style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span className="material-symbols-outlined" style={{ color: '#b1c6f9' }}>security</span>
+                        <h3 style={{ fontFamily: 'Anybody', fontSize: '0.9rem', textTransform: 'uppercase', margin: 0 }}>Monitor de Seguridad</h3>
+                      </header>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                          <div style={{ width: '40px', height: '40px', background: 'rgba(177, 198, 249, 0.1)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#b1c6f9' }}>
+                            <span className="material-symbols-outlined">login</span>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '1rem', fontWeight: 800 }}>{insights.seguridad.conexionesHoy}</div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--outline)', textTransform: 'uppercase' }}>Logins (24hs)</div>
+                          </div>
+                        </div>
+                        <div style={{ height: '1px', background: 'var(--border)', margin: '0.5rem 0' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{insights.seguridad.roles.user}</div>
+                            <div style={{ fontSize: '0.6rem', color: 'var(--outline)', textTransform: 'uppercase' }}>Usuarios</div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{insights.seguridad.roles.admin}</div>
+                            <div style={{ fontSize: '0.6rem', color: 'var(--outline)', textTransform: 'uppercase' }}>Admins</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                )}
 
                 <div className="admin-grid-v2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginTop: '2rem' }}>
                   {/* Top Certeros */}
