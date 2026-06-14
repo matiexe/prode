@@ -226,11 +226,17 @@ export default function Dashboard() {
   }, [partidos, fase, grupo]);
   
   const hoy = new Date();
-  const hoyStr = hoy.toISOString().split('T')[0];
+  
+  // Función auxiliar para comparar si dos fechas son el mismo día en hora local
+  const esMismoDia = (d1: Date, d2: Date) => {
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+  };
 
   const partidosDeHoy = partidos.filter(p => {
-    const pFecha = new Date(p.fechaHora).toISOString().split('T')[0];
-    return pFecha === hoyStr && p.estado === 'pendiente';
+    const pFecha = new Date(p.fechaHora);
+    return esMismoDia(pFecha, hoy) && p.estado === 'pendiente';
   });
 
   const proximosPartidos = partidosDeHoy.length > 0 
