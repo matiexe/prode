@@ -5,6 +5,7 @@ import { Partido } from '../models/Partido';
 import { Pronostico } from '../models/Pronostico';
 import { ConfiguracionPuntos } from '../models/ConfiguracionPuntos';
 import { authenticate, requireAdmin, AuthRequest } from '../middlewares/auth.middleware';
+import { sequelize } from '../config/database';
 
 const router = Router();
 
@@ -56,8 +57,6 @@ router.get('/stats', async (_req: AuthRequest, res: Response): Promise<void> => 
     const configExacto = await ConfiguracionPuntos.findOne({ where: { tipo: 'exacto', activo: true } });
     const valorExacto = configExacto?.puntos || 3;
 
-    // Nota: PostgreSQL requiere que todas las columnas seleccionadas estén en GROUP BY o agregadas.
-    // Simplificamos la consulta para evitar errores de dialecto.
     const counts = await Pronostico.findAll({
       where: { puntosObtenidos: valorExacto },
       attributes: [
@@ -70,7 +69,6 @@ router.get('/stats', async (_req: AuthRequest, res: Response): Promise<void> => 
       raw: true
     });
 
-    // Hidratamos los datos de los usuarios ganadores
     const topCerteros = await Promise.all(counts.map(async (item: any) => {
       const u = await Usuario.findByPk(item.usuarioId, { attributes: ['nombre', 'email'] });
       return {
@@ -100,121 +98,94 @@ router.get('/stats', async (_req: AuthRequest, res: Response): Promise<void> => 
 
 router.get('/stats/insights', async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
-    // 1. Tendencias de Predicción (El Oráculo)
+    // 1. Tendencias (El Oráculo) - Consultas separadas para evitar errores de JOIN en GROUP BY
     
-    // Favorito del Torneo (basado en la Final)
+    // Favorito
     const partidoFinal = await Partido.findOne({ where: { fase: 'final' } });
     let favorito = 'Sin definir';
     if (partidoFinal) {
-      const counts = await Pronostico.findAll({
+      const prons = await Pronostico.findAll({ 
         where: { partidoId: partidoFinal.id },
-        attributes: [
-          [fn('COUNT', col('id')), 'total'],
-          [fn('SUM', sequelize.literal('CASE WHEN goles_local > goles_visitante THEN 1 ELSE 0 END')), 'local'],
-          [fn('SUM', sequelize.literal('CASE WHEN goles_visitante > goles_local THEN 1 ELSE 0 END')), 'visitante']
-        ],
-        raw: true
-      }) as any;
-
-      if (counts[0] && parseInt(counts[0].total) > 0) {
-        favorito = parseInt(counts[0].local) >= parseInt(counts[0].visitante) 
-          ? partidoFinal.equipoLocal 
-          : partidoFinal.equipoVisitante;
+        attributes: ['golesLocal', 'golesVisitante'],
+        raw: true 
+      });
+      let localGana = 0;
+      let visitGana = 0;
+      prons.forEach(p => {
+        if (p.golesLocal > p.golesVisitante) localGana++;
+        else if (p.golesVisitante > p.golesLocal) visitGana++;
+      });
+      if (localGana + visitGana > 0) {
+        favorito = localGana >= visitGana ? partidoFinal.equipoLocal : partidoFinal.equipoVisitante;
       }
     }
 
-    // Partido con más empates
-    const masEmpatesRaw = await Pronostico.findAll({
-      where: sequelize.literal('goles_local = goles_visitante'),
+    // Marcador más común
+    const marcadores = await Pronostico.findAll({
       attributes: [
-        'partidoId',
+        'golesLocal', 
+        'golesVisitante',
         [fn('COUNT', col('id')), 'cantidad']
       ],
-      group: ['partidoId'],
-      order: [[fn('COUNT', col('id')), 'DESC']],
-      limit: 1,
-      include: [{ model: Partido, as: 'partido', attributes: ['equipoLocal', 'equipoVisitante'] }]
-    }) as any;
-
-    const partidoMasEmpatado = masEmpatesRaw[0] 
-      ? `${masEmpatesRaw[0].partido.equipoLocal} vs ${masEmpatesRaw[0].partido.equipoVisitante}`
-      : 'N/A';
-
-    // Marcador más repetido
-    const marcadorMasComun = await Pronostico.findAll({
-      attributes: [
-        [sequelize.literal("CONCAT(goles_local, '-', goles_visitante)"), 'marcador'],
-        [fn('COUNT', col('id')), 'cantidad']
-      ],
-      group: [sequelize.literal("CONCAT(goles_local, '-', goles_visitante)")],
+      group: ['golesLocal', 'golesVisitante'],
       order: [[fn('COUNT', col('id')), 'DESC']],
       limit: 1,
       raw: true
     }) as any;
+    const marcadorComun = marcadores[0] ? `${marcadores[0].golesLocal}-${marcadores[0].golesVisitante}` : 'N/A';
 
-    // 2. Rendimiento (Calidad)
+    // Partido más empatado (ID con más pronósticos de empate)
+    const empates = await Pronostico.findAll({
+      where: sequelize.literal('goles_local = goles_visitante'),
+      attributes: ['partidoId', [fn('COUNT', col('id')), 'cantidad']],
+      group: ['partidoId'],
+      order: [[fn('COUNT', col('id')), 'DESC']],
+      limit: 1,
+      raw: true
+    }) as any;
     
-    // Promedio de puntos
+    let partidoMasEmpatado = 'N/A';
+    if (empates[0]) {
+      const part = await Partido.findByPk(empates[0].partidoId);
+      if (part) partidoMasEmpatado = `${part.equipoLocal} vs ${part.equipoVisitante}`;
+    }
+
+    // 2. Rendimiento
     const usuariosActivos = await Usuario.count({ where: { activo: true, rol: 'user' } });
-    const puntosTotales = await Pronostico.sum('puntos_obtenidos') || 0;
+    const puntosTotales = await Pronostico.sum('puntosObtenidos') || 0;
     const promedioPuntos = usuariosActivos > 0 ? (puntosTotales / usuariosActivos).toFixed(1) : 0;
 
-    // Mayor efectividad (% Certero)
-    // Calculamos: Aciertos Exactos / Pronósticos Totales por usuario
     const configExacto = await ConfiguracionPuntos.findOne({ where: { tipo: 'exacto', activo: true } });
     const valorExacto = configExacto?.puntos || 3;
 
-    const efectividadRaw = await Pronostico.findAll({
-      attributes: [
-        'usuarioId',
-        [fn('COUNT', col('id')), 'total'],
-        [fn('SUM', sequelize.literal(`CASE WHEN puntos_obtenidos = ${valorExacto} THEN 1 ELSE 0 END`)), 'exactos']
-      ],
+    const efecRaw = await Pronostico.findAll({
+      attributes: ['usuarioId', [fn('COUNT', col('id')), 'total'], [fn('SUM', sequelize.literal(`CASE WHEN puntos_obtenidos = ${valorExacto} THEN 1 ELSE 0 END`)), 'exactos']],
       group: ['usuarioId'],
       raw: true
     }) as any;
 
-    let mejorEfectividad = { nombre: 'N/A', porcentaje: 0 };
-    efectividadRaw.forEach((row: any) => {
-      const porcentaje = (parseInt(row.exactos) / parseInt(row.total)) * 100;
-      if (porcentaje > mejorEfectividad.porcentaje) {
-        mejorEfectividad = { usuarioId: row.usuarioId, porcentaje: Math.round(porcentaje) } as any;
+    let mejorEfec = { nombre: 'N/A', porcentaje: 0 };
+    for (const row of efecRaw) {
+      const porc = Math.round((parseInt(row.exactos) / parseInt(row.total)) * 100);
+      if (porc > mejorEfec.porcentaje) {
+        const u = await Usuario.findByPk(row.usuarioId);
+        mejorEfec = { nombre: u?.nombre || 'N/A', porcentaje: porc };
       }
-    });
-
-    if ((mejorEfectividad as any).usuarioId) {
-      const u = await Usuario.findByPk((mejorEfectividad as any).usuarioId);
-       mejorEfectividad.nombre = u?.nombre || 'N/A';
     }
 
-    // 3. Monitoreo Técnico
-    
-    // Conexiones últimas 24hs
-    const ultimas24hs = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const conexionesRecientes = await Usuario.count({
-      where: {
-        ultimoAcceso: { [Op.gte]: ultimas24hs }
-      }
+    // 3. Seguridad
+    const connections = await Usuario.count({
+      where: { ultimoAcceso: { [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000) } }
     });
-
-    // Distribución de roles
-    const adminCount = await Usuario.count({ where: { rol: 'admin' } });
-    const userCount = await Usuario.count({ where: { rol: 'user' } });
+    const roles = {
+      admin: await Usuario.count({ where: { rol: 'admin' } }),
+      user: await Usuario.count({ where: { rol: 'user' } })
+    };
 
     res.json({
-      oraculo: {
-        favorito,
-        partidoMasEmpatado,
-        marcadorComun: marcadorMasComun[0]?.marcador || 'N/A'
-      },
-      calidad: {
-        promedioPuntos,
-        mejorEfectividad
-      },
-      seguridad: {
-        conexionesHoy: conexionesRecientes,
-        roles: { admin: adminCount, user: userCount }
-      }
+      oraculo: { favorito, partidoMasEmpatado, marcadorComun },
+      calidad: { promedioPuntos, mejorEfectividad: mejorEfec },
+      seguridad: { conexionesHoy: connections, roles }
     });
   } catch (error) {
     console.error('Error al obtener insights:', error);
