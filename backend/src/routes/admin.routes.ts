@@ -193,6 +193,28 @@ router.get('/stats/insights', async (_req: AuthRequest, res: Response): Promise<
   }
 });
 
+router.get('/pronosticos/:usuarioId', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { usuarioId } = req.params;
+    
+    const pronosticos = await Pronostico.findAll({
+      where: { usuarioId },
+      include: [{
+        model: Partido,
+        as: 'partido',
+      }],
+      order: [
+        [{ model: Partido, as: 'partido' }, 'fecha_hora', 'ASC']
+      ]
+    });
+
+    res.json(pronosticos);
+  } catch (error) {
+    console.error('Error al obtener pronosticos del usuario:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 router.post('/db-fix', async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { sequelize } = await import('../config/database');

@@ -1,4 +1,5 @@
 import client from './client';
+import type { Pronostico } from '../types';
 
 export interface AdminStats {
   totalUsuarios: number;
@@ -50,5 +51,10 @@ export const obtenerAdminStats = async (): Promise<AdminStats> => {
 
 export const obtenerAdminInsights = async (): Promise<AdminInsights> => {
   const { data } = await client.get('/admin/stats/insights');
+  return data;
+};
+
+export const obtenerPronosticosUsuario = async (usuarioId: number): Promise<Pronostico[]> => {
+  const { data } = await client.get(`/admin/pronosticos/${usuarioId}`);
   return data;
 };

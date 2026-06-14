@@ -5,15 +5,15 @@ import { useAuth } from '../contexts/useAuth';
 import { listarUsuarios, crearUsuario, desactivarUsuario, actualizarUsuario } from '../api/usuarios';
 import { listarPartidos, generarFixture, eliminarFixture, cargarResultado, cerrarFase } from '../api/partidos';
 import { obtenerConfiguracion, actualizarConfiguracion } from '../api/configuracion';
-import { obtenerAdminStats, obtenerAdminInsights } from '../api/admin';
+import { obtenerAdminStats, obtenerAdminInsights, obtenerPronosticosUsuario } from '../api/admin';
 import type { AdminStats, AdminInsights } from '../api/admin';
 import { getFlagUrl } from '../utils/flags';
 import UserAvatar from '../components/UserAvatar';
 import FormUsuario from '../components/FormUsuario';
 import ModalResultado from '../components/ModalResultado';
-import type { Usuario, Partido, ConfiguracionPuntos } from '../types';
+import type { Usuario, Partido, ConfiguracionPuntos, Pronostico } from '../types';
 
-type Tab = 'dashboard' | 'usuarios' | 'cargar' | 'finalizados' | 'configuracion';
+type Tab = 'dashboard' | 'usuarios' | 'cargar' | 'finalizados' | 'buscador' | 'configuracion';
 
 export default function AdminPanel() {
   const { usuario, logout } = useAuth();
@@ -30,6 +30,11 @@ export default function AdminPanel() {
   const [partidoModal, setPartidoModal] = useState<Partido | null>(null);
   const [faseFiltro, setFaseFiltro] = useState('grupos');
   const [grupoFiltro, setGrupoFiltro] = useState('');
+
+  // Estados del Buscador
+  const [buscadorUsuarioId, setBuscadorUsuarioId] = useState<string>('');
+  const [buscadorPronosticos, setBuscadorPronosticos] = useState<Pronostico[]>([]);
+  const [buscando, setBuscando] = useState(false);
 
   const [configPuntos, setConfigPuntos] = useState<ConfiguracionPuntos | null>(null);
 
@@ -48,7 +53,7 @@ export default function AdminPanel() {
       fetchStats();
       fetchInsights();
     }
-    else if (tab === 'usuarios') fetchUsuarios();
+    else if (tab === 'usuarios' || tab === 'buscador') fetchUsuarios();
     else if (tab === 'cargar' || tab === 'finalizados') fetchPartidos();
     else if (tab === 'configuracion') fetchConfig();
   }, [tab, usuario]);
@@ -101,6 +106,24 @@ export default function AdminPanel() {
       setConfigPuntos(data);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
+  };
+
+  const handleBuscarPronosticos = async (userId: string) => {
+    setBuscadorUsuarioId(userId);
+    if (!userId) {
+      setBuscadorPronosticos([]);
+      return;
+    }
+
+    setBuscando(true);
+    try {
+      const data = await obtenerPronosticosUsuario(parseInt(userId, 10));
+      setBuscadorPronosticos(data);
+    } catch (err) {
+      console.error('Error al buscar pronosticos:', err);
+    } finally {
+      setBuscando(false);
+    }
   };
 
   const handleCerrarFase = async () => {
@@ -195,6 +218,7 @@ export default function AdminPanel() {
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
     { id: 'usuarios', label: 'Usuarios', icon: 'group' },
+    { id: 'buscador', label: 'Buscador', icon: 'search' },
     { id: 'cargar', label: 'Cargar Resultados', icon: 'edit_square' },
     { id: 'finalizados', label: 'Finalizados', icon: 'sports_soccer' },
     { id: 'configuracion', label: 'Configuración', icon: 'settings' },
@@ -607,6 +631,85 @@ export default function AdminPanel() {
                 </div>
               ))}
             </div>
+          </section>
+        )}
+
+        {tab === 'buscador' && (
+          <section className="admin-section">
+            <header className="section-header">
+              <div>
+                <h2>Buscador de Pronósticos</h2>
+                <p className="subtitle" style={{ fontSize: '0.85rem' }}>Consulta las predicciones de un usuario específico.</p>
+              </div>
+            </header>
+
+            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem', width: 'fit-content', minWidth: '300px' }}>
+              <label style={{ fontFamily: 'Anybody', fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--outline)', display: 'block', marginBottom: '0.5rem' }}>
+                Seleccionar Usuario:
+              </label>
+              <select 
+                value={buscadorUsuarioId} 
+                onChange={(e) => handleBuscarPronosticos(e.target.value)}
+                style={{ 
+                  width: '100%',
+                  background: 'transparent', 
+                  border: '1px solid var(--border)', 
+                  color: 'var(--on-surface)', 
+                  fontWeight: 600, 
+                  padding: '0.75rem',
+                  borderRadius: '8px',
+                  cursor: 'pointer' 
+                }}
+              >
+                <option value="" style={{ background: 'var(--surface-container-high)' }}>-- Elegir un usuario --</option>
+                {usuarios.filter(u => u.rol === 'user').map((u) => (
+                  <option key={u.id} value={u.id} style={{ background: 'var(--surface-container-high)' }}>
+                    {u.nombre} ({u.email})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {buscando ? (
+              <div className="partidos-grid">
+                {[1, 2, 3].map(i => <div key={i} className="skeleton-card" style={{ height: '150px' }}></div>)}
+              </div>
+            ) : buscadorPronosticos.length === 0 ? (
+              <div className="empty glass-card" style={{ padding: '4rem', textAlign: 'center', borderRadius: '16px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '3rem', opacity: 0.2, marginBottom: '1rem' }}>person_search</span>
+                <p style={{ opacity: 0.5 }}>{buscadorUsuarioId ? 'Este usuario aún no tiene pronósticos.' : 'Selecciona un usuario para ver sus datos.'}</p>
+              </div>
+            ) : (
+              <div className="partidos-grid">
+                {buscadorPronosticos.map((p) => (
+                  <article key={p.id} className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', borderLeft: p.puntosObtenidos !== null ? `4px solid var(--tertiary)` : 'none' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                      <span className="fase-tag">{p.partido?.fase} {p.partido?.grupo ? `- G${p.partido.grupo}` : ''}</span>
+                      {p.puntosObtenidos !== null && (
+                        <span style={{ fontWeight: 800, color: 'var(--tertiary)', fontSize: '0.8rem' }}>+{p.puntosObtenidos} PTS</span>
+                      )}
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                      <div style={{ textAlign: 'right', flex: 1, fontSize: '0.8rem', fontWeight: 600 }}>{p.partido?.equipoLocal}</div>
+                      <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                        <div style={{ background: 'var(--surface-container-high)', padding: '0.3rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{p.golesLocal}</div>
+                        <span style={{ opacity: 0.3 }}>-</span>
+                        <div style={{ background: 'var(--surface-container-high)', padding: '0.3rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{p.golesVisitante}</div>
+                      </div>
+                      <div style={{ textAlign: 'left', flex: 1, fontSize: '0.8rem', fontWeight: 600 }}>{p.partido?.equipoVisitante}</div>
+                    </div>
+
+                    {p.partido?.estado === 'finalizado' && (
+                      <div style={{ textAlign: 'center', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '0.5rem' }}>
+                        <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--outline)', marginBottom: '0.25rem' }}>Resultado Real</div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{p.partido.golesLocal} - {p.partido.golesVisitante}</div>
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+            )}
           </section>
         )}
 
