@@ -328,48 +328,107 @@ export default function AdminPanel() {
                 ))}
               </div>
             ) : stats ? (
-              <div className="admin-config-grid">
-                <div className="config-card glass-card" style={{ borderLeft: '4px solid var(--primary)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <label>Usuarios Totales</label>
-                      <div className="stat-value">{stats.totalUsuarios}</div>
+              <>
+                <div className="admin-config-grid">
+                  <div className="config-card glass-card" style={{ borderLeft: '4px solid var(--primary)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <label>Usuarios Totales</label>
+                        <div className="stat-value">{stats.totalUsuarios}</div>
+                      </div>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--primary)', opacity: 0.5 }}>group</span>
                     </div>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--primary)', opacity: 0.5 }}>group</span>
+                    <p className="hint">Registrados en total.</p>
                   </div>
-                  <p className="hint">Registrados en total.</p>
-                </div>
-                <div className="config-card glass-card" style={{ borderLeft: '4px solid var(--tertiary)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <label>Usuarios Activos</label>
-                      <div className="stat-value">{stats.usuariosActivos}</div>
+                  <div className="config-card glass-card" style={{ borderLeft: '4px solid var(--tertiary)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <label>Engagement</label>
+                        <div className="stat-value">{stats.tasaCobertura}%</div>
+                      </div>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--tertiary)', opacity: 0.5 }}>bolt</span>
                     </div>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--tertiary)', opacity: 0.5 }}>person_check</span>
-                  </div>
-                  <p className="hint">Con cuenta habilitada.</p>
-                </div>
-                <div className="config-card glass-card" style={{ borderLeft: '4px solid #00F0FF' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <label>Pronósticos</label>
-                      <div className="stat-value">{stats.totalPronosticos}</div>
+                    <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', marginTop: '0.5rem', overflow: 'hidden' }}>
+                      <div style={{ width: `${stats.tasaCobertura}%`, height: '100%', background: 'var(--tertiary)', transition: 'width 1s ease-out' }}></div>
                     </div>
-                    <span className="material-symbols-outlined" style={{ color: '#00F0FF', opacity: 0.5 }}>analytics</span>
+                    <p className="hint" style={{ marginTop: '0.25rem' }}>Pronósticos vs Posibles.</p>
                   </div>
-                  <p className="hint">Predicciones cargadas.</p>
-                </div>
-                <div className="config-card glass-card" style={{ borderLeft: '4px solid var(--primary-fixed)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <label>Partidos</label>
-                      <div className="stat-value">{stats.partidosFinalizados} / {stats.totalPartidos}</div>
+                  <div className="config-card glass-card" style={{ borderLeft: '4px solid #00F0FF' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <label>Pronósticos</label>
+                        <div className="stat-value">{stats.totalPronosticos}</div>
+                      </div>
+                      <span className="material-symbols-outlined" style={{ color: '#00F0FF', opacity: 0.5 }}>analytics</span>
                     </div>
-                    <span className="material-symbols-outlined" style={{ color: 'var(--primary-fixed)', opacity: 0.5 }}>sports_soccer</span>
+                    <p className="hint">Predicciones cargadas.</p>
                   </div>
-                  <p className="hint">Finalizados vs Total.</p>
+                  <div className="config-card glass-card" style={{ borderLeft: '4px solid var(--primary-fixed)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <label>Partidos</label>
+                        <div className="stat-value">{stats.partidosFinalizados} / {stats.totalPartidos}</div>
+                      </div>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--primary-fixed)', opacity: 0.5 }}>sports_soccer</span>
+                    </div>
+                    <p className="hint">Finalizados vs Total.</p>
+                  </div>
                 </div>
-              </div>
+
+                <div className="admin-grid-v2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginTop: '2rem' }}>
+                  {/* Top Certeros */}
+                  <div className="glass-card" style={{ padding: '2rem', borderRadius: '20px' }}>
+                    <header style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <span className="material-symbols-outlined" style={{ color: '#ffcc00' }}>military_tech</span>
+                      <h3 style={{ fontFamily: 'Anybody', fontSize: '0.9rem', textTransform: 'uppercase', margin: 0 }}>Top Pronosticadores Certeros</h3>
+                    </header>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {stats.topCerteros.map((u, i) => (
+                        <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px' }}>
+                          <div style={{ fontWeight: 800, color: 'var(--outline)', width: '20px' }}>{i + 1}</div>
+                          <UserAvatar name={u.nombre} size={32} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{u.nombre}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--outline)' }}>{u.email}</div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--tertiary)' }}>{u.aciertos}</div>
+                            <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--outline)' }}>🎯 Exactos</div>
+                          </div>
+                        </div>
+                      ))}
+                      {stats.topCerteros.length === 0 && <p style={{ textAlign: 'center', opacity: 0.5, fontSize: '0.8rem' }}>Aún no hay aciertos exactos.</p>}
+                    </div>
+                  </div>
+
+                  {/* Usuarios Dormidos */}
+                  <div className="glass-card" style={{ padding: '2rem', borderRadius: '20px' }}>
+                    <header style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <span className="material-symbols-outlined" style={{ color: '#ff6b6b' }}>notifications_paused</span>
+                      <h3 style={{ fontFamily: 'Anybody', fontSize: '0.9rem', textTransform: 'uppercase', margin: 0 }}>Usuarios "Dormidos"</h3>
+                    </header>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--outline)', marginBottom: '1rem' }}>Usuarios activos que aún no han cargado ningún pronóstico.</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {stats.usuariosDormidos.map((u) => (
+                        <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px' }}>
+                          <UserAvatar name={u.nombre} size={28} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>{u.nombre}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--outline)' }}>{u.email}</div>
+                          </div>
+                          <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', color: 'var(--outline)', opacity: 0.5 }}>mail</span>
+                        </div>
+                      ))}
+                      {stats.usuariosDormidos.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(0,228,118,0.05)', borderRadius: '12px', color: 'var(--tertiary)' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>verified</span>
+                          <p style={{ fontSize: '0.8rem', fontWeight: 600 }}>¡Todos los usuarios han participado!</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </>
             ) : (
               <div className="empty glass-card" style={{ padding: '3rem', textAlign: 'center', borderRadius: '16px' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '3rem', opacity: 0.3, marginBottom: '1rem' }}>error</span>
