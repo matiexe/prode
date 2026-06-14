@@ -2,15 +2,18 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { listarPartidos } from '../api/partidos';
 import { obtenerMisPronosticos, guardarPronostico } from '../api/pronosticos';
+import { obtenerConfiguracion } from '../api/configuracion';
 import PartidoCard from '../components/PartidoCard';
 import TablaGrupo from '../components/TablaGrupo';
+import UserAvatar from '../components/UserAvatar';
 import type { EquipoPosicion } from '../components/TablaGrupo';
-import type { Partido, Pronostico } from '../types';
+import type { Partido, Pronostico, ConfiguracionPuntos } from '../types';
 
 export default function Dashboard() {
   const { usuario, logout } = useAuth();
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [pronosticos, setPronosticos] = useState<Pronostico[]>([]);
+  const [config, setConfig] = useState<ConfiguracionPuntos | null>(null);
   const [fase, setFase] = useState('grupos');
   const [grupo, setGrupo] = useState('');
   const [loading, setLoading] = useState(true);
@@ -34,13 +37,14 @@ export default function Dashboard() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Obtenemos todos los partidos para calcular las fases visibles
-        const [partidosData, pronosticosData] = await Promise.all([
+        const [partidosData, pronosticosData, configData] = await Promise.all([
           listarPartidos(),
           obtenerMisPronosticos(),
+          obtenerConfiguracion(),
         ]);
         setPartidos(partidosData);
         setPronosticos(pronosticosData);
+        setConfig(configData);
       } catch (err) {
         console.error('Error al cargar datos:', err);
       } finally {
@@ -48,7 +52,7 @@ export default function Dashboard() {
       }
     };
     fetchData();
-  }, [usuario]); // Eliminamos fase y grupo de las dependencias ya que cargamos todo
+  }, [usuario]);
 
   const getPronostico = (partidoId: number) => {
     const p = pronosticos.find((pr) => pr.partidoId === partidoId);
@@ -66,7 +70,6 @@ export default function Dashboard() {
       pendingRef.current.delete(partidoId);
     }
     setPendingCount(pendingRef.current.size);
-    // Forzamos re-render para el simulador
     setVersion(v => v + 1);
   };
 
@@ -120,7 +123,6 @@ export default function Dashboard() {
     timerRef.current = setTimeout(() => setMensaje(null), 4000) as any;
   };
 
-  // Lógica del simulador
   const tablaProyectada = useMemo(() => {
     if (fase !== 'grupos' || !grupo) return null;
 
@@ -132,7 +134,7 @@ export default function Dashboard() {
     };
 
     partidos.forEach(p => {
-      if (p.grupo !== grupo) return; // Solo procesamos el grupo seleccionado
+      if (p.grupo !== grupo) return;
       
       initEquipo(p.equipoLocal);
       initEquipo(p.equipoVisitante);
@@ -196,9 +198,8 @@ export default function Dashboard() {
 
   const todasLasFases = ['grupos', '16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final'];
 
-  // Calculamos qué fases tienen equipos definidos
   const fasesHabilitadas = useMemo(() => {
-    const habilitadas = new Set(['grupos']); // Grupos siempre habilitada
+    const habilitadas = new Set(['grupos']);
     todasLasFases.slice(1).forEach(f => {
       const tieneEquiposDefinidos = partidos.some(p => 
         p.fase === f && 
@@ -212,11 +213,23 @@ export default function Dashboard() {
     return habilitadas;
   }, [partidos]);
 
-  const totalPuntos = pronosticos.reduce(
-    (sum, p) => sum + (p.puntosObtenidos ?? 0), 0
-  );
+  const statsSummary = useMemo(() => {
+    if (!config) return { total: 0, certeros: 0, parciales: 0 };
+    
+    return pronosticos.reduce((acc, p) => {
+      const pts = p.puntosObtenidos ?? 0;
+      if (pts === 0) return acc;
 
-  // Filtros de visualización corregidos para usar el estado local 'fase' y 'grupo'
+      if (pts === config.exacto) {
+        acc.certeros++;
+      } else {
+        acc.parciales++;
+      }
+      acc.total += pts;
+      return acc;
+    }, { total: 0, certeros: 0, parciales: 0 });
+  }, [pronosticos, config]);
+
   const partidosFiltrados = useMemo(() => {
     let filtrados = partidos.filter(p => p.fase === fase);
     if (fase === 'grupos' && grupo) {
@@ -227,7 +240,6 @@ export default function Dashboard() {
   
   const hoy = new Date();
   
-  // Función auxiliar para comparar si dos fechas son el mismo día en hora local
   const esMismoDia = (d1: Date, d2: Date) => {
     return d1.getFullYear() === d2.getFullYear() &&
            d1.getMonth() === d2.getMonth() &&
@@ -259,14 +271,41 @@ export default function Dashboard() {
 
   return (
     <div className="page dashboard">
-      <div className="dashboard-header">
-        <div>
-          <h1>Hola, {usuario?.nombre}</h1>
-          <p className="subtitle">Gestiona tus pronósticos y sigue los resultados en vivo.</p>
+      <div className="dashboard-header glass-card" style={{ padding: '2rem', borderRadius: '24px', border: '1px solid rgba(0, 229, 255, 0.15)', marginBottom: '3rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+          <UserAvatar name={usuario?.nombre || 'User'} size={80} className="avatar-glow" />
+          <div style={{ flex: 1, minWidth: '200px' }}>
+            <h1 style={{ margin: 0, fontSize: '2rem' }}>Hola, {usuario?.nombre}</h1>
+            <p className="subtitle" style={{ margin: '0.5rem 0 0' }}>Gestiona tus pronósticos y sigue los resultados en vivo.</p>
+          </div>
+          <div className="puntos-resumen-v2">
+            <div className="puntos-total-v2">{statsSummary.total}</div>
+            <div className="puntos-label-v2">PUNTOS TOTALES</div>
+          </div>
         </div>
-        <div className="puntos-resumen">
-          <span className="puntos-total">{totalPuntos}</span>
-          <span className="puntos-label">puntos totales</span>
+
+        <div className="stats-grid-v2">
+          <div className="stat-item-v2">
+            <div className="stat-icon-v2" style={{ background: 'rgba(0, 229, 255, 0.1)', color: '#00e5ff' }}>🎯</div>
+            <div>
+              <div className="stat-value-v2">{statsSummary.certeros}</div>
+              <div className="stat-label-v2">Aciertos Certeros</div>
+            </div>
+          </div>
+          <div className="stat-item-v2">
+            <div className="stat-icon-v2" style={{ background: 'rgba(0, 228, 118, 0.1)', color: '#00e476' }}>📈</div>
+            <div>
+              <div className="stat-value-v2">{statsSummary.parciales}</div>
+              <div className="stat-label-v2">Aciertos Parciales</div>
+            </div>
+          </div>
+          <div className="stat-item-v2">
+            <div className="stat-icon-v2" style={{ background: 'rgba(177, 198, 249, 0.1)', color: '#b1c6f9' }}>📝</div>
+            <div>
+              <div className="stat-value-v2">{pronosticos.length}</div>
+              <div className="stat-label-v2">Partidos Jugados</div>
+            </div>
+          </div>
         </div>
       </div>
 

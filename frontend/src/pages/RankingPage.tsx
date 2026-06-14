@@ -5,12 +5,9 @@ import { listarPartidos } from '../api/partidos';
 import { solicitarOTP, verificarOTP } from '../api/auth';
 import { useAuth } from '../contexts/useAuth';
 import Brackets from '../components/Brackets';
+import UserAvatar from '../components/UserAvatar';
 import type { RankingEntry, Partido } from '../types';
 import fifaImg from '../assets/fifa.jpg';
-
-function getInitials(name: string): string {
-  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-}
 
 export default function RankingPage() {
   const { usuario } = useAuth();
@@ -115,9 +112,7 @@ export default function RankingPage() {
                     return (
                       <div key={entry.usuarioId} className={`top3-card ${isFirst ? 'is-first' : ''} ${orderClass}`}>
                         <div className="avatar-wrapper">
-                          <div className={`top3-avatar-placeholder ${isFirst ? 'is-first' : ''}`}>
-                            {getInitials(entry.nombre)}
-                          </div>
+                          <UserAvatar name={entry.nombre} size={isFirst ? 80 : 60} className={isFirst ? "avatar-glow" : ""} />
                           {isFirst ? (
                             <div className="top3-badge">
                               <span className="material-symbols-outlined" style={{ fontSize: '1rem', fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
@@ -142,9 +137,7 @@ export default function RankingPage() {
                             <td className="ranking-pos">{String(entry.posicion).padStart(2, '0')}</td>
                             <td>
                               <div className="ranking-user">
-                                <div className="ranking-user-avatar-placeholder">
-                                  {getInitials(entry.nombre)}
-                                </div>
+                                <UserAvatar name={entry.nombre} size={40} />
                                 <span className="ranking-user-name">{entry.nombre}</span>
                               </div>
                             </td>
@@ -180,7 +173,7 @@ export default function RankingPage() {
 
           {usuario ? (
             <div className="dashboard-link-card glass-card" style={{ padding: '2.5rem', borderRadius: '16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--primary)' }}>account_circle</span>
+              <UserAvatar name={usuario.nombre} size={80} className="avatar-glow" />
               <div>
                 <h3 style={{ fontFamily: 'Anybody', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Hola, {usuario.nombre}</h3>
                 <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem' }}>Ya puedes empezar a cargar tus pronósticos.</p>

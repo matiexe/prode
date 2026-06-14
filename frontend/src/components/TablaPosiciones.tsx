@@ -1,8 +1,5 @@
+import UserAvatar from './UserAvatar';
 import type { RankingEntry } from '../types';
-
-function getInitials(name: string): string {
-  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-}
 
 interface TablaPosicionesProps {
   ranking: RankingEntry[];
@@ -27,9 +24,7 @@ export default function TablaPosiciones({ ranking, loading }: TablaPosicionesPro
               <td className="ranking-pos">{String(entry.posicion).padStart(2, '0')}</td>
               <td>
                 <div className="ranking-user">
-                  <div className="ranking-user-avatar-placeholder">
-                    {getInitials(entry.nombre)}
-                  </div>
+                  <UserAvatar name={entry.nombre} size={36} />
                   <span className="ranking-user-name">{entry.nombre}</span>
                 </div>
               </td>

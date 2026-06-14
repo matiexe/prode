@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@multiavatar/multiavatar": "^1.0.7",
     "axios": "^1.16.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",

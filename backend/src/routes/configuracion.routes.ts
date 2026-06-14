@@ -4,7 +4,7 @@ import { authenticate, requireAdmin, AuthRequest } from '../middlewares/auth.mid
 
 const router = Router();
 
-router.use(authenticate, requireAdmin);
+router.use(authenticate);
 
 router.get('/', async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -20,7 +20,7 @@ router.get('/', async (_req: AuthRequest, res: Response): Promise<void> => {
   }
 });
 
-router.put('/', async (req: AuthRequest, res: Response): Promise<void> => {
+router.put('/', requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { exacto, diferencia, ganador, error } = req.body;
 
