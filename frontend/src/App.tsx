@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import AdminPanel from './pages/AdminPanel';
 import RankingPage from './pages/RankingPage';
+import GruposPage from './pages/GruposPage';
 
 function Navbar({ onOpenMenu }: { onOpenMenu: () => void }) {
   const { usuario } = useAuth();
@@ -28,6 +29,7 @@ function Navbar({ onOpenMenu }: { onOpenMenu: () => void }) {
             </Link>
             <div className="nav-links">
               <Link to="/ranking" className={isActive('/ranking')}>RANKING</Link>
+              <Link to="/grupos" className={isActive('/grupos')}>POSICIONES</Link>
               <Link to="/dashboard" className={isActive('/dashboard')}>DASHBOARD</Link>
               {usuario.rol === 'admin' && (
                 <Link to="/admin" className={isActive('/admin')}>ADMIN</Link>
@@ -74,6 +76,10 @@ function GlobalSidebar({ open, onClose }: { open: boolean; onClose: () => void }
             <span className="material-symbols-outlined">leaderboard</span>
             Ranking
           </Link>
+          <Link to="/grupos" className={`sidebar-link ${isActive('/grupos')}`} onClick={onClose}>
+            <span className="material-symbols-outlined">table_chart</span>
+            Posiciones
+          </Link>
           <Link to="/dashboard" className={`sidebar-link ${isActive('/dashboard')}`} onClick={onClose}>
             <span className="material-symbols-outlined">dashboard</span>
             Mi Prode
@@ -114,6 +120,14 @@ function AppContent() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/ranking" element={<RankingPage />} />
+          <Route
+            path="/grupos"
+            element={
+              <AuthGuard>
+                <GruposPage />
+              </AuthGuard>
+            }
+          />
           <Route
             path="/dashboard"
             element={
