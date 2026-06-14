@@ -32,16 +32,14 @@ router.get('/stats', async (_req: AuthRequest, res: Response): Promise<void> => 
         rol: 'user'
       },
       attributes: ['id', 'nombre', 'email'],
-      limit: 10 // Solo los primeros para no sobrecargar
+      limit: 10
     });
 
     // 2. Tasa de Cobertura de la Fase Actual
-    // ¿Cuántos pronósticos hay cargados vs cuántos debería haber (Usuarios Activos * Partidos Pendientes)?
     const partidosPendientes = await Partido.findAll({ where: { estado: 'pendiente' } });
     const countPendientes = partidosPendientes.length;
     const pronosticosPosibles = usuariosActivos * countPendientes;
     
-    // Contamos pronósticos sobre partidos que aún están pendientes
     const pronosticosPendientesActuales = await Pronostico.count({
       include: [{
         model: Partido,
@@ -55,21 +53,33 @@ router.get('/stats', async (_req: AuthRequest, res: Response): Promise<void> => 
       : 0;
 
     // 3. Top Pronosticadores (Certeros)
-    // Buscamos el valor del punto 'exacto'
     const configExacto = await ConfiguracionPuntos.findOne({ where: { tipo: 'exacto', activo: true } });
     const valorExacto = configExacto?.puntos || 3;
 
-    const topCerterosRaw = await Pronostico.findAll({
+    // Nota: PostgreSQL requiere que todas las columnas seleccionadas estén en GROUP BY o agregadas.
+    // Simplificamos la consulta para evitar errores de dialecto.
+    const counts = await Pronostico.findAll({
       where: { puntosObtenidos: valorExacto },
       attributes: [
-        'usuario_id',
-        [fn('COUNT', col('usuario_id')), 'cantidad']
+        'usuarioId',
+        [fn('COUNT', col('id')), 'cantidad']
       ],
-      group: ['usuario_id'],
-      order: [[fn('COUNT', col('usuario_id')), 'DESC']],
+      group: ['usuarioId'],
+      order: [[fn('COUNT', col('id')), 'DESC']],
       limit: 5,
-      include: [{ model: Usuario, as: 'usuario', attributes: ['nombre', 'email'] }]
+      raw: true
     });
+
+    // Hidratamos los datos de los usuarios ganadores
+    const topCerteros = await Promise.all(counts.map(async (item: any) => {
+      const u = await Usuario.findByPk(item.usuarioId, { attributes: ['nombre', 'email'] });
+      return {
+        id: item.usuarioId,
+        nombre: u?.nombre || 'Desconocido',
+        email: u?.email || '',
+        aciertos: parseInt(item.cantidad, 10)
+      };
+    }));
 
     res.json({
       totalUsuarios,
@@ -80,12 +90,7 @@ router.get('/stats', async (_req: AuthRequest, res: Response): Promise<void> => 
       partidosPendientes: totalPartidos - partidosFinalizados,
       tasaCobertura,
       usuariosDormidos: dormidos,
-      topCerteros: topCerterosRaw.map((t: any) => ({
-        id: t.usuario_id,
-        nombre: t.usuario.nombre,
-        email: t.usuario.email,
-        aciertos: parseInt(t.get('cantidad'), 10)
-      }))
+      topCerteros
     });
   } catch (error) {
     console.error('Error al obtener estadisticas:', error);
@@ -103,7 +108,6 @@ router.post('/db-fix', async (_req: AuthRequest, res: Response): Promise<void> =
       estado_actual: []
     };
     
-    // 1. Intentar aplicar parches
     const queries = [
       { name: 'ganador_nombre', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "ganador_nombre" VARCHAR(255)' },
       { name: 'goles_local', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_local" INTEGER' },
@@ -120,7 +124,6 @@ router.post('/db-fix', async (_req: AuthRequest, res: Response): Promise<void> =
       }
     }
 
-    // 2. Diagnóstico: Ver qué columnas existen realmente y en qué esquema
     try {
       const [columns]: any = await sequelize.query(`
         SELECT table_schema, table_name, column_name, data_type 

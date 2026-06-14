@@ -73,8 +73,8 @@ Pronostico.init(
   }
 );
 
-Usuario.hasMany(Pronostico, { foreignKey: 'usuarioId' });
-Pronostico.belongsTo(Usuario, { foreignKey: 'usuarioId' });
+Usuario.hasMany(Pronostico, { foreignKey: 'usuarioId', as: 'pronosticos' });
+Pronostico.belongsTo(Usuario, { foreignKey: 'usuarioId', as: 'usuario' });
 
 Partido.hasMany(Pronostico, { foreignKey: 'partidoId', as: 'pronosticos' });
 Pronostico.belongsTo(Partido, { foreignKey: 'partidoId', as: 'partido' });
