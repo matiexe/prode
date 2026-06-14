@@ -64,8 +64,8 @@ router.get('/mis', async (req: AuthRequest, res: Response): Promise<void> => {
 
     res.json(pronosticos);
   } catch (error) {
-    console.error('Error al obtener pronosticos:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    console.error(`[PRONOSTICOS ERROR] Fallo al traer pronósticos para el usuario ${req.usuario?.nombre} (ID: ${req.usuario?.id}):`, error);
+    res.status(500).json({ error: 'Error al obtener tus pronósticos' });
   }
 });
 

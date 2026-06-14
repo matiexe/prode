@@ -36,6 +36,10 @@ export async function authenticate(req: AuthRequest, res: Response, next: NextFu
     }
 
     req.usuario = userData as Usuario;
+    
+    // LOG DE AUDITORIA: Identificamos quién hace la petición
+    console.log(`[AUTH] Solicitud de: ${userData.nombre} (${userData.email}) ID: ${userData.id} -> ${req.method} ${req.originalUrl}`);
+    
     next();
   } catch (error) {
     res.status(401).json({ error: 'Token inválido o expirado' });
