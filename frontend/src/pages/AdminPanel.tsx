@@ -291,12 +291,12 @@ export default function AdminPanel() {
 
 
       {/* Main Content */}
-      <main className="admin-main">
+      <main className="admin-main page">
         {/* Toggle only visible on tablet/mobile where sidebar is hidden */}
-
         <button 
           className="admin-sidebar-toggle" 
           onClick={() => setSidebarOpen(true)}
+          style={{ marginBottom: '2rem', marginLeft: 0 }}
         >
           <span className="material-symbols-outlined">settings_accessibility</span>
           Opciones Admin
@@ -414,71 +414,27 @@ export default function AdminPanel() {
               </div>
             )}
 
-            {/* Desktop View */}
-            <div className="table-responsive desktop-only">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Usuario</th>
-                    <th>Email</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    <th style={{ textAlign: 'right' }}>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usuarios.map((u) => (
-                    <tr key={u.id}>
-                      <td style={{ fontWeight: 600, color: 'var(--on-surface)' }}>{u.nombre}</td>
-                      <td>{u.email}</td>
-                      <td>
-                        <span className="fase-tag">{u.rol}</span>
-                      </td>
-                      <td>
-                        <span className={`status-badge ${u.activo ? 'active' : 'inactive'}`}>
-                          {u.activo ? 'Activo' : 'Inactivo'}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                          <button className="admin-btn secondary small" onClick={() => handleEditClick(u)}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
-                          </button>
-                          {u.activo && u.id !== usuario?.id && (
-                            <button className="admin-btn danger small" onClick={() => handleDesactivar(u.id)}>
-                              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>block</span>
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile View */}
-            <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="admin-config-grid" style={{ gap: '1rem' }}>
               {usuarios.map((u) => (
-                <div key={u.id} className="glass-card" style={{ padding: '1.25rem', borderRadius: '12px' }}>
+                <div key={u.id} className="glass-card" style={{ padding: '1.25rem', borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <div>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>{u.nombre}</h3>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--outline)', margin: '0.25rem 0' }}>{u.email}</p>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.nombre}</h3>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--outline)', margin: '0.25rem 0', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.email}</p>
                     </div>
-                    <span className={`status-badge ${u.activo ? 'active' : 'inactive'}`}>
+                    <span className={`status-badge ${u.activo ? 'active' : 'inactive'}`} style={{ flexShrink: 0 }}>
                       {u.activo ? 'Activo' : 'Inactivo'}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
                     <span className="fase-tag">{u.rol}</span>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                      <button className="admin-btn secondary" style={{ padding: '0.5rem' }} onClick={() => handleEditClick(u)}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>edit</span>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button className="admin-btn secondary small" onClick={() => handleEditClick(u)}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>edit</span>
                       </button>
                       {u.activo && u.id !== usuario?.id && (
-                        <button className="admin-btn danger" style={{ padding: '0.5rem' }} onClick={() => handleDesactivar(u.id)}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>block</span>
+                        <button className="admin-btn danger small" onClick={() => handleDesactivar(u.id)}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>block</span>
                         </button>
                       )}
                     </div>
@@ -555,13 +511,13 @@ export default function AdminPanel() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', margin: '1rem 0' }}>
                     <div style={{ textAlign: 'center', flex: 1 }}>
-                      {getFlagUrl(p.equipoLocal) && <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} alt="" style={{ width: '32px', height: '24px', marginBottom: '0.5rem' }} />}
-                      <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>{p.equipoLocal}</div>
+                      {getFlagUrl(p.equipoLocal) && <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} alt="" style={{ width: '24px', height: '18px', marginBottom: '0.25rem' }} />}
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700 }}>{p.equipoLocal}</div>
                     </div>
                     <span style={{ fontWeight: 800, color: 'var(--outline)', opacity: 0.5 }}>VS</span>
                     <div style={{ textAlign: 'center', flex: 1 }}>
-                      {getFlagUrl(p.equipoVisitante) && <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} alt="" style={{ width: '32px', height: '24px', marginBottom: '0.5rem' }} />}
-                      <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>{p.equipoVisitante}</div>
+                      {getFlagUrl(p.equipoVisitante) && <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} alt="" style={{ width: '24px', height: '18px', marginBottom: '0.25rem' }} />}
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700 }}>{p.equipoVisitante}</div>
                     </div>
                   </div>
                   <button 
@@ -610,20 +566,26 @@ export default function AdminPanel() {
 
             <div className="partidos-grid">
               {partidos.filter((p) => p.estado === 'finalizado').map((p) => (
-                <article key={p.id} className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', opacity: 0.8 }}>
+                <article key={p.id} className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', opacity: 0.9 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                     <span className="fase-tag" style={{ background: 'rgba(0, 228, 118, 0.1)', color: 'var(--primary)' }}>FINALIZADO</span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--outline)' }}>{new Date(p.fechaHora).toLocaleDateString()}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', margin: '1rem 0' }}>
-                    <div style={{ textAlign: 'right', flex: 1, fontSize: '0.85rem', fontWeight: 700 }}>{p.equipoLocal}</div>
-                    <div style={{ background: 'var(--surface-container-high)', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '1.25rem', fontWeight: 900, fontFamily: 'Anybody' }}>
+                    <div style={{ textAlign: 'center', flex: 1 }}>
+                      {getFlagUrl(p.equipoLocal) && <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} alt="" style={{ width: '24px', height: '18px', marginBottom: '0.25rem' }} />}
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700 }}>{p.equipoLocal}</div>
+                    </div>
+                    <div style={{ background: 'var(--surface-container-high)', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 900, fontFamily: 'Anybody' }}>
                       {p.golesLocal} - {p.golesVisitante}
                     </div>
-                    <div style={{ textAlign: 'left', flex: 1, fontSize: '0.85rem', fontWeight: 700 }}>{p.equipoVisitante}</div>
+                    <div style={{ textAlign: 'center', flex: 1 }}>
+                      {getFlagUrl(p.equipoVisitante) && <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} alt="" style={{ width: '24px', height: '18px', marginBottom: '0.25rem' }} />}
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700 }}>{p.equipoVisitante}</div>
+                    </div>
                   </div>
                   {p.ganadorNombre && (
-                    <div style={{ textAlign: 'center', marginTop: '0.75rem', fontSize: '0.65rem', color: 'var(--tertiary)', fontFamily: 'Anybody', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                    <div style={{ textAlign: 'center', marginTop: '0.5rem', fontSize: '0.6rem', color: 'var(--tertiary)', fontFamily: 'Anybody', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       Ganador: {p.ganadorNombre}
                     </div>
                   )}
