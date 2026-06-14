@@ -21,7 +21,34 @@ export interface AdminStats {
   }>;
 }
 
+export interface AdminInsights {
+  oraculo: {
+    favorito: string;
+    partidoMasEmpatado: string;
+    marcadorComun: string;
+  };
+  calidad: {
+    promedioPuntos: string | number;
+    mejorEfectividad: {
+      nombre: string;
+      porcentaje: number;
+    };
+  };
+  seguridad: {
+    conexionesHoy: number;
+    roles: {
+      admin: number;
+      user: number;
+    };
+  };
+}
+
 export const obtenerAdminStats = async (): Promise<AdminStats> => {
   const { data } = await client.get('/admin/stats');
+  return data;
+};
+
+export const obtenerAdminInsights = async (): Promise<AdminInsights> => {
+  const { data } = await client.get('/admin/stats/insights');
   return data;
 };

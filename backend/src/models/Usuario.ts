@@ -7,11 +7,12 @@ export interface UsuarioAttributes {
   email: string;
   rol: 'admin' | 'user';
   activo: boolean;
+  ultimoAcceso?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-export interface UsuarioCreationAttributes extends Optional<UsuarioAttributes, 'id' | 'rol' | 'activo'> {}
+export interface UsuarioCreationAttributes extends Optional<UsuarioAttributes, 'id' | 'rol' | 'activo' | 'ultimoAcceso'> {}
 
 export class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes> implements UsuarioAttributes {
   declare id: number;
@@ -19,6 +20,7 @@ export class Usuario extends Model<UsuarioAttributes, UsuarioCreationAttributes>
   declare email: string;
   declare rol: 'admin' | 'user';
   declare activo: boolean;
+  declare ultimoAcceso?: Date;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 }
@@ -58,6 +60,10 @@ Usuario.init(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
       allowNull: false,
+    },
+    ultimoAcceso: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
   },
   {

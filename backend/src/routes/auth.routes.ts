@@ -107,6 +107,8 @@ router.post('/verificar-otp', async (req: Request, res: Response): Promise<void>
       console.log(`[SIMULACION] Usuario ${email} ingresó con código mágico.`);
     }
 
+    await usuario.update({ ultimoAcceso: new Date() });
+
     const userData = usuario.get({ plain: true });
     const secret = process.env.JWT_SECRET || 'secret';
     const token = jwt.sign(
