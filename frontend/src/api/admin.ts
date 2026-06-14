@@ -7,6 +7,18 @@ export interface AdminStats {
   totalPartidos: number;
   partidosFinalizados: number;
   partidosPendientes: number;
+  tasaCobertura: number;
+  usuariosDormidos: Array<{
+    id: number;
+    nombre: string;
+    email: string;
+  }>;
+  topCerteros: Array<{
+    id: number;
+    nombre: string;
+    email: string;
+    aciertos: number;
+  }>;
 }
 
 export const obtenerAdminStats = async (): Promise<AdminStats> => {

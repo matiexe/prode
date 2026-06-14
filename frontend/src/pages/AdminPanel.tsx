@@ -8,6 +8,7 @@ import { obtenerConfiguracion, actualizarConfiguracion } from '../api/configurac
 import { obtenerAdminStats } from '../api/admin';
 import type { AdminStats } from '../api/admin';
 import { getFlagUrl } from '../utils/flags';
+import UserAvatar from '../components/UserAvatar';
 import FormUsuario from '../components/FormUsuario';
 import ModalResultado from '../components/ModalResultado';
 import type { Usuario, Partido, ConfiguracionPuntos } from '../types';
@@ -47,6 +48,7 @@ export default function AdminPanel() {
     else if (tab === 'configuracion') fetchConfig();
   }, [tab, usuario]);
 
+  // Fetch all administrative data for the dashboard tabs
   const fetchStats = async () => {
     setLoading(true);
     try {
