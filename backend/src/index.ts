@@ -47,65 +47,13 @@ let dbInitializationPromise: Promise<void> | null = null;
 async function initializeDb() {
   try {
     await testConnection();
+    console.log('[DB] Conexión verificada exitosamente.');
     
-    // Sincronización inicial
-    try {
-      await sequelize.sync({ alter: true });
-    } catch (syncErr) {
-      console.warn('[DB] Advertencia durante sync({alter:true}):', (syncErr as any).message);
-    }
-    
-    // Verificación y corrección manual de columnas críticas en la tabla 'partidos'
-    // Esto ayuda en entornos como Vercel Postgres donde alter:true a veces no detecta cambios
-    try {
-      const queryInterface = sequelize.getQueryInterface();
-      
-      // Intentos de SQL puro para máxima compatibilidad
-      console.log('[DB] Ejecutando parches de emergencia SQL...');
-      await sequelize.query('ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "ganador_nombre" VARCHAR(255)');
-      await sequelize.query('ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_local" INTEGER');
-      await sequelize.query('ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_visitante" INTEGER');
-      await sequelize.query('ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "estado" VARCHAR(20) DEFAULT \'pendiente\'');
-      console.log('[DB] Parches SQL completados.');
-
-      const tableDefinition = await queryInterface.describeTable('partidos');
-
-      // Verificación de tabla codigos_otp
-      try {
-        await queryInterface.describeTable('codigos_otp');
-      } catch (e) {
-        console.log('[DB] La tabla "codigos_otp" no existe. Intentando crearla...');
-        await CodigoOTP.sync();
-      }
-    } catch (colErr) {
-      console.warn('[DB] Nota: No se pudo verificar/agregar columnas manualmente:', (colErr as any).message);
-    }
-
-    console.log('Modelos sincronizados y esquema actualizado con la base de datos.');
-
-    const configCount = await ConfiguracionPuntos.count();
-    if (configCount === 0) {
-      await ConfiguracionPuntos.bulkCreate([
-        { tipo: 'exacto', puntos: 3, activo: true },
-        { tipo: 'diferencia', puntos: 2, activo: true },
-        { tipo: 'ganador', puntos: 1, activo: true },
-        { tipo: 'error', puntos: 0, activo: true },
-      ]);
-      console.log('Configuracion de puntos por defecto creada.');
-    }
-
-    const adminCount = await Usuario.count({ where: { rol: 'admin' } });
-    if (adminCount === 0) {
-      await Usuario.create({
-        nombre: 'Administrador',
-        email: 'admin@prode2026.com',
-        rol: 'admin',
-      });
-      console.log('Usuario administrador creado (admin@prode2026.com).');
-    }
+    // Solo realizamos conteos básicos si es necesario, 
+    // pero evitamos sync({alter: true}) y parches SQL pesados aquí.
   } catch (error) {
-    console.error('Error al inicializar la base de datos:', error);
-    dbInitializationPromise = null; // Permitir reintento en la siguiente petición si falla
+    console.error('Error al verificar la base de datos:', error);
+    dbInitializationPromise = null;
     throw error;
   }
 }
