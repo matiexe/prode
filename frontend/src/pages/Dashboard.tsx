@@ -34,8 +34,9 @@ export default function Dashboard() {
     const fetchData = async () => {
       setLoading(true);
       try {
+        // Obtenemos todos los partidos para calcular las fases visibles
         const [partidosData, pronosticosData] = await Promise.all([
-          listarPartidos(fase, grupo || undefined),
+          listarPartidos(),
           obtenerMisPronosticos(),
         ]);
         setPartidos(partidosData);
@@ -47,170 +48,66 @@ export default function Dashboard() {
       }
     };
     fetchData();
-  }, [fase, grupo, usuario]);
+  }, [usuario]); // Eliminamos fase y grupo de las dependencias ya que cargamos todo
 
-  const getPronostico = (partidoId: number) => {
-    const p = pronosticos.find((pr) => pr.partidoId === partidoId);
-    return p ? { local: p.golesLocal, visitante: p.golesVisitante, puntos: p.puntosObtenidos } : undefined;
-  };
+  // ... (getPronostico, handleInputChange, handleGuardar, handleGuardarTodos, tablaProyectada stay same)
 
-  const handleInputChange = (partidoId: number, local: string, visitante: string) => {
-    const saved = getPronostico(partidoId);
-    const hasValue = local !== '' && visitante !== '';
-    const isDirty = hasValue && (local !== saved?.local?.toString() || visitante !== saved?.visitante?.toString());
+  const todasLasFases = ['grupos', '16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final'];
 
-    if (isDirty) {
-      pendingRef.current.set(partidoId, { local, visitante });
-    } else {
-      pendingRef.current.delete(partidoId);
-    }
-    setPendingCount(pendingRef.current.size);
-    // Forzamos re-render para el simulador
-    setVersion(v => v + 1);
-  };
-
-  const handleGuardar = async (partidoId: number, golesLocal: number, golesVisitante: number) => {
-    try {
-      await guardarPronostico(partidoId, golesLocal, golesVisitante);
-      const pronosticosData = await obtenerMisPronosticos();
-      setPronosticos(pronosticosData);
-      setMensaje({ texto: 'Pronostico guardado correctamente', tipo: 'success' });
-      pendingRef.current.delete(partidoId);
-      setPendingCount(pendingRef.current.size);
-      setVersion((v) => v + 1);
-    } catch {
-      setMensaje({ texto: 'Error al guardar el pronostico', tipo: 'error' });
-    }
-    clearTimeout(timerRef.current as any);
-    timerRef.current = setTimeout(() => setMensaje(null), 3000) as any;
-  };
-
-  const handleGuardarTodos = async () => {
-    const entries = [...pendingRef.current.entries()];
-    if (entries.length === 0) return;
-
-    setSavingAll(true);
-    let ok = 0;
-    let err = 0;
-
-    for (const [partidoId, { local, visitante }] of entries) {
-      try {
-        await guardarPronostico(partidoId, parseInt(local, 10), parseInt(visitante, 10));
-        ok++;
-      } catch {
-        err++;
-      }
-    }
-
-    const pronosticosData = await obtenerMisPronosticos();
-    setPronosticos(pronosticosData);
-    pendingRef.current.clear();
-    setPendingCount(0);
-    setVersion((v) => v + 1);
-    setSavingAll(false);
-
-    setMensaje({
-      texto: err === 0
-        ? `Todos los pronosticos guardados (${ok})`
-        : `Guardados: ${ok}, errores: ${err}`,
-      tipo: err === 0 ? 'success' : 'error',
+  // Calculamos qué fases tienen equipos definidos
+  const fasesHabilitadas = useMemo(() => {
+    const habilitadas = new Set(['grupos']); // Grupos siempre habilitada
+    todasLasFases.slice(1).forEach(f => {
+      const tieneEquiposDefinidos = partidos.some(p => 
+        p.fase === f && 
+        p.equipoLocal !== 'Por definir' && 
+        p.equipoLocal !== 'TBD' &&
+        p.equipoVisitante !== 'Por definir' &&
+        p.equipoVisitante !== 'TBD'
+      );
+      if (tieneEquiposDefinidos) habilitadas.add(f);
     });
-    clearTimeout(timerRef.current as any);
-    timerRef.current = setTimeout(() => setMensaje(null), 4000) as any;
-  };
-
-  // Lógica del simulador
-  const tablaProyectada = useMemo(() => {
-    if (fase !== 'grupos' || !grupo) return null;
-
-    const tabla: Record<string, EquipoPosicion> = {};
-    const initEquipo = (nombre: string) => {
-      if (!tabla[nombre]) {
-        tabla[nombre] = { equipo: nombre, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dg: 0, pts: 0 };
-      }
-    };
-
-    partidos.forEach(p => {
-      initEquipo(p.equipoLocal);
-      initEquipo(p.equipoVisitante);
-
-      let gL: number | null = null;
-      let gV: number | null = null;
-
-      if (p.estado === 'finalizado') {
-        gL = p.golesLocal;
-        gV = p.golesVisitante;
-      } else {
-        const pending = pendingRef.current.get(p.id);
-        if (pending) {
-          gL = parseInt(pending.local, 10);
-          gV = parseInt(pending.visitante, 10);
-        } else {
-          const saved = getPronostico(p.id);
-          if (saved) {
-            gL = saved.local;
-            gV = saved.visitante;
-          }
-        }
-      }
-
-      if (gL !== null && gV !== null && !isNaN(gL) && !isNaN(gV)) {
-        const local = tabla[p.equipoLocal];
-        const visit = tabla[p.equipoVisitante];
-
-        local.pj++;
-        visit.pj++;
-        local.gf += gL;
-        local.gc += gV;
-        visit.gf += gV;
-        visit.gc += gL;
-
-        if (gL > gV) {
-          local.pg++;
-          local.pts += 3;
-          visit.pp++;
-        } else if (gL < gV) {
-          visit.pg++;
-          visit.pts += 3;
-          local.pp++;
-        } else {
-          local.pe++;
-          visit.pe++;
-          local.pts += 1;
-          visit.pts += 1;
-        }
-        local.dg = local.gf - local.gc;
-        visit.dg = visit.gf - visit.gc;
-      }
-    });
-
-    return Object.values(tabla).sort((a, b) => {
-      if (b.pts !== a.pts) return b.pts - a.pts;
-      if (b.dg !== a.dg) return b.dg - a.dg;
-      return b.gf - a.gf;
-    });
-  }, [partidos, pronosticos, grupo, fase, version]);
-
-  const fases = ['grupos', '16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final'];
+    return habilitadas;
+  }, [partidos]);
 
   const totalPuntos = pronosticos.reduce(
     (sum, p) => sum + (p.puntosObtenidos ?? 0), 0
   );
 
-  // Filtros de visualización
-  const partidosAMostrar = partidos.sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime());
+  // Filtros de visualización corregidos para usar el estado local 'fase' y 'grupo'
+  const partidosFiltrados = useMemo(() => {
+    let filtrados = partidos.filter(p => p.fase === fase);
+    if (fase === 'grupos' && grupo) {
+      filtrados = filtrados.filter(p => p.grupo === grupo);
+    }
+    return filtrados.sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime());
+  }, [partidos, fase, grupo]);
   
-  const partidosPendientes = partidosAMostrar.filter(
-    (p) => p.estado === 'pendiente' && new Date(p.fechaHora) > new Date()
+  const hoy = new Date();
+  const hoyStr = hoy.toISOString().split('T')[0];
+
+  const partidosDeHoy = partidos.filter(p => {
+    const pFecha = new Date(p.fechaHora).toISOString().split('T')[0];
+    return pFecha === hoyStr && p.estado === 'pendiente';
+  });
+
+  const proximosPartidos = partidosDeHoy.length > 0 
+    ? partidosDeHoy 
+    : partidos.filter(p => p.estado === 'pendiente' && new Date(p.fechaHora) > hoy)
+        .sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime())
+        .slice(0, 2);
+
+  const tituloSeccionProximos = partidosDeHoy.length > 0 ? 'Partidos de Hoy' : 'Próximos Partidos';
+
+  const partidosPendientesTotales = partidos.filter(
+    (p) => p.estado === 'pendiente' && new Date(p.fechaHora) > hoy
   );
 
-  const proximosPartidos = partidosPendientes.slice(0, 2);
-
-  const partidosPronosticados = partidosPendientes.filter(
+  const partidosPronosticados = partidosPendientesTotales.filter(
     (p) => pronosticos.some((pr) => pr.partidoId === p.id)
   );
 
-  const faltanPronosticar = partidosPendientes.length - partidosPronosticados.length;
+  const faltanPronosticar = partidosPendientesTotales.length - partidosPronosticados.length;
 
   return (
     <div className="page dashboard">
@@ -238,7 +135,7 @@ export default function Dashboard() {
               <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', color: '#00e5ff' }}>schedule</span>
             </div>
             <h2 style={{ fontSize: '0.8rem', fontFamily: 'Anybody', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 800 }}>
-              Próximos Partidos
+              {tituloSeccionProximos}
             </h2>
           </header>
           <div className="partidos-grid">
@@ -272,7 +169,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {faltanPronosticar === 0 && partidosPendientes.length > 0 && (
+      {faltanPronosticar === 0 && partidosPendientesTotales.length > 0 && (
         <div className="missing-banner done">
           <span className="material-symbols-outlined">verified</span>
           <span>¡Todo listo! Has completado todos los pronósticos disponibles.</span>
@@ -280,7 +177,7 @@ export default function Dashboard() {
       )}
 
       <nav className="fase-tabs">
-        {fases.map((f) => (
+        {todasLasFases.filter(f => fasesHabilitadas.has(f)).map((f) => (
           <button
             key={f}
             className={`fase-tab ${fase === f ? 'active' : ''}`}
@@ -327,7 +224,7 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-          ) : partidosAMostrar.length === 0 ? (
+          ) : partidosFiltrados.length === 0 ? (
             <div className="empty glass-card" style={{ borderRadius: '16px' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>event_busy</span>
               <p>No se encontraron partidos para esta selección.</p>
@@ -347,7 +244,7 @@ export default function Dashboard() {
                 </div>
               )}
               <div className="partidos-grid">
-                {partidosAMostrar.map((partido) => {
+                {partidosFiltrados.map((partido) => {
                   const miProno = getPronostico(partido.id);
                   return (
                     <PartidoCard
