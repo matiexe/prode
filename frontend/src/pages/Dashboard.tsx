@@ -341,7 +341,7 @@ export default function Dashboard() {
         ))}
       </nav>
 
-      <div className="dashboard-content" style={{ display: 'grid', gridTemplateColumns: fase === 'grupos' && grupo ? '1fr 320px' : '1fr', gap: '2rem' }}>
+      <div className="dashboard-content" style={{ display: 'grid', gridTemplateColumns: fase === 'grupos' && !grupo && tablaProyectada ? '1fr 320px' : '1fr', gap: '2rem' }}>
         <div className="dashboard-left">
           {fase === 'grupos' && (
             <div className="grupo-filtro glass-card" style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', width: 'fit-content' }}>
@@ -411,7 +411,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {fase === 'grupos' && grupo && tablaProyectada && (
+        {fase === 'grupos' && !grupo && tablaProyectada && (
           <aside className="dashboard-right">
             <header style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>analytics</span>
@@ -420,7 +420,7 @@ export default function Dashboard() {
               </h2>
             </header>
             <div className="glass-card" style={{ borderRadius: '16px', padding: '1rem' }}>
-              <TablaGrupo titulo={`Grupo ${grupo} (Proyectado)`} posiciones={tablaProyectada} />
+              <TablaGrupo titulo={`Tu Tabla (Proyectada)`} posiciones={tablaProyectada} />
               <p style={{ fontSize: '0.65rem', color: 'var(--outline)', fontStyle: 'italic', marginTop: '1rem', lineHeight: '1.4' }}>
                 * Esta tabla se actualiza en tiempo real mientras escribes tus pronósticos.
               </p>
