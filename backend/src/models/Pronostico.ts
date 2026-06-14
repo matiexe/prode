@@ -69,6 +69,10 @@ Pronostico.init(
         fields: ['usuario_id', 'partido_id'],
         name: 'uq_usuario_partido',
       },
+      {
+        fields: ['usuario_id'],
+        name: 'idx_usuario_id',
+      },
     ],
   }
 );

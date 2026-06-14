@@ -36,26 +36,38 @@ export default function Dashboard() {
     if (!usuario) return;
     const fetchData = async () => {
       setLoading(true);
-      const t = Date.now(); // Cache-buster
+      const t = Date.now();
+      
       try {
-        // Forzamos la obtención de datos frescos usando un timestamp
-        const [partidosData, pronosticosData, configData] = await Promise.all([
+        // Ejecutamos las peticiones con un pequeño delay entre ellas o en paralelo
+        // pero capturando errores individuales para mejor diagnóstico
+        const [partidosRes, pronoRes, configRes] = await Promise.allSettled([
           listarPartidos(undefined, undefined, t),
           obtenerMisPronosticos(t),
-          obtenerConfiguracion(t),
+          obtenerConfiguracion(t)
         ]);
-        
-        console.log(`[DASHBOARD] Datos cargados con éxito. Partidos: ${partidosData.length}, Pronósticos: ${pronosticosData.length}`);
-        
-        setPartidos(partidosData);
-        setPronosticos(pronosticosData);
-        setConfig(configData);
+
+        if (partidosRes.status === 'fulfilled') setPartidos(partidosRes.value);
+        else console.error('[DASHBOARD] Error al cargar partidos:', (partidosRes as any).reason);
+
+        if (pronoRes.status === 'fulfilled') setPronosticos(pronoRes.value);
+        else console.error('[DASHBOARD] Error al cargar pronósticos:', (pronoRes as any).reason);
+
+        if (configRes.status === 'fulfilled') setConfig(configRes.value);
+        else console.error('[DASHBOARD] Error al cargar configuración:', (configRes as any).reason);
+
+        if (partidosRes.status === 'rejected' && pronoRes.status === 'rejected') {
+          throw new Error('No se pudo conectar con el servidor');
+        }
+
       } catch (err: any) {
-        console.error('[DASHBOARD] Error crítico al cargar datos:', err);
+        console.error('[DASHBOARD] Error crítico:', err);
         setMensaje({ 
-          texto: 'Error al conectar con el servidor. Por favor, recarga la página.', 
+          texto: 'Conexión lenta detectada. Los datos se están cargando...', 
           tipo: 'error' 
         });
+        // Reintento silencioso en 3 segundos
+        setTimeout(fetchData, 3000);
       } finally {
         setLoading(false);
       }
