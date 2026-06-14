@@ -1,8 +1,9 @@
 import apiClient from './client';
 import type { ConfiguracionPuntos } from '../types';
 
-export async function obtenerConfiguracion(): Promise<ConfiguracionPuntos> {
-  const { data } = await apiClient.get('/admin/configuracion');
+export async function obtenerConfiguracion(t?: number): Promise<ConfiguracionPuntos> {
+  const url = t ? `/admin/configuracion?t=${t}` : '/admin/configuracion';
+  const { data } = await apiClient.get(url);
   return data;
 }
 

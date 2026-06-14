@@ -1,10 +1,11 @@
 import apiClient from './client';
 import type { Partido } from '../types';
 
-export async function listarPartidos(fase?: string, grupo?: string): Promise<Partido[]> {
+export async function listarPartidos(fase?: string, grupo?: string, t?: number): Promise<Partido[]> {
   const params = new URLSearchParams();
   if (fase) params.append('fase', fase);
   if (grupo) params.append('grupo', grupo);
+  if (t) params.append('t', t.toString());
   const { data } = await apiClient.get(`/partidos?${params}`);
   return data;
 }

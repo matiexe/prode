@@ -1,8 +1,9 @@
 import apiClient from './client';
 import type { Pronostico, RankingEntry } from '../types';
 
-export async function obtenerMisPronosticos(): Promise<Pronostico[]> {
-  const { data } = await apiClient.get('/pronosticos/mis');
+export async function obtenerMisPronosticos(t?: number): Promise<Pronostico[]> {
+  const url = t ? `/pronosticos/mis?t=${t}` : '/pronosticos/mis';
+  const { data } = await apiClient.get(url);
   return data;
 }
 

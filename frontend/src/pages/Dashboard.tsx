@@ -36,17 +36,26 @@ export default function Dashboard() {
     if (!usuario) return;
     const fetchData = async () => {
       setLoading(true);
+      const t = Date.now(); // Cache-buster
       try {
+        // Forzamos la obtención de datos frescos usando un timestamp
         const [partidosData, pronosticosData, configData] = await Promise.all([
-          listarPartidos(),
-          obtenerMisPronosticos(),
-          obtenerConfiguracion(),
+          listarPartidos(undefined, undefined, t),
+          obtenerMisPronosticos(t),
+          obtenerConfiguracion(t),
         ]);
+        
+        console.log(`[DASHBOARD] Datos cargados con éxito. Partidos: ${partidosData.length}, Pronósticos: ${pronosticosData.length}`);
+        
         setPartidos(partidosData);
         setPronosticos(pronosticosData);
         setConfig(configData);
-      } catch (err) {
-        console.error('Error al cargar datos:', err);
+      } catch (err: any) {
+        console.error('[DASHBOARD] Error crítico al cargar datos:', err);
+        setMensaje({ 
+          texto: 'Error al conectar con el servidor. Por favor, recarga la página.', 
+          tipo: 'error' 
+        });
       } finally {
         setLoading(false);
       }
