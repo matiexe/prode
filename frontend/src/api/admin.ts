@@ -42,6 +42,24 @@ export interface AdminInsights {
       user: number;
     };
   };
+  shareData?: {
+    top3: Array<{
+      id: number;
+      nombre: string;
+      email: string;
+      avatarSeed?: string;
+      aciertos: number;
+      certeros: number;
+      parciales: number;
+      total: number;
+      puntos: number;
+    }>;
+    global: {
+      certeros: number;
+      parciales: number;
+      total: number;
+    };
+  };
 }
 
 export const obtenerAdminStats = async (): Promise<AdminStats> => {

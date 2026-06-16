@@ -124,10 +124,43 @@ router.post('/verificar-otp', async (req: Request, res: Response): Promise<void>
         nombre: userData.nombre,
         email: userData.email,
         rol: userData.rol,
+        avatarSeed: userData.avatarSeed,
       },
     });
   } catch (error) {
     console.error('Error al verificar OTP:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+import { authenticate, AuthRequest } from '../middlewares/auth.middleware';
+
+router.put('/me/avatar', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { avatarSeed } = req.body;
+    
+    if (!avatarSeed) {
+      res.status(400).json({ error: 'El avatarSeed es requerido' });
+      return;
+    }
+
+    const usuario = await Usuario.findByPk(req.usuario!.id);
+    if (!usuario) {
+      res.status(404).json({ error: 'Usuario no encontrado' });
+      return;
+    }
+
+    await usuario.update({ avatarSeed });
+    
+    res.json({
+      id: usuario.id,
+      nombre: usuario.nombre,
+      email: usuario.email,
+      rol: usuario.rol,
+      avatarSeed: usuario.avatarSeed,
+    });
+  } catch (error) {
+    console.error('Error al actualizar avatar:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

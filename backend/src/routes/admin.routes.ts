@@ -182,10 +182,48 @@ router.get('/stats/insights', async (_req: AuthRequest, res: Response): Promise<
       user: await Usuario.count({ where: { rol: 'user' } })
     };
 
+    // 4. Datos para Compartir (ShareStats)
+    const todosPronosticos = await Pronostico.findAll({ raw: true }) as any[];
+    const allUsers = await Usuario.findAll({ where: { activo: true, rol: 'user' }, raw: true }) as any[];
+    
+    let globalCerteros = 0;
+    let globalParciales = 0;
+    
+    const userStatsMap: Record<number, any> = {};
+    allUsers.forEach(u => {
+      userStatsMap[u.id] = { id: u.id, nombre: u.nombre, avatarSeed: u.avatarSeed, puntos: 0, certeros: 0, parciales: 0, total: 0 };
+    });
+
+    todosPronosticos.forEach(p => {
+      const pts = p.puntosObtenidos || 0;
+      if (userStatsMap[p.usuarioId]) {
+        userStatsMap[p.usuarioId].total++;
+        userStatsMap[p.usuarioId].puntos += pts;
+        if (pts === valorExacto) {
+          userStatsMap[p.usuarioId].certeros++;
+          globalCerteros++;
+        } else if (pts > 0) {
+          userStatsMap[p.usuarioId].parciales++;
+          globalParciales++;
+        }
+      }
+    });
+
+    const ranking = Object.values(userStatsMap).sort((a: any, b: any) => b.puntos - a.puntos);
+    const top3Share = ranking.slice(0, 3);
+
     res.json({
       oraculo: { favorito, partidoMasEmpatado, marcadorComun },
       calidad: { promedioPuntos, mejorEfectividad: mejorEfec },
-      seguridad: { conexionesHoy: connections, roles }
+      seguridad: { conexionesHoy: connections, roles },
+      shareData: {
+        top3: top3Share,
+        global: {
+          certeros: globalCerteros,
+          parciales: globalParciales,
+          total: todosPronosticos.length
+        }
+      }
     });
   } catch (error) {
     console.error('Error al obtener insights:', error);
@@ -230,7 +268,8 @@ router.post('/db-fix', async (_req: AuthRequest, res: Response): Promise<void> =
       { name: 'goles_local', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_local" INTEGER' },
       { name: 'goles_visitante', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_visitante" INTEGER' },
       { name: 'estado', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "estado" VARCHAR(20) DEFAULT \'pendiente\'' },
-      { name: 'ultimo_acceso', sql: 'ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "ultimo_acceso" TIMESTAMP WITH TIME ZONE' }
+      { name: 'ultimo_acceso', sql: 'ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "ultimo_acceso" TIMESTAMP WITH TIME ZONE' },
+      { name: 'avatar_seed', sql: 'ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "avatar_seed" VARCHAR(100)' }
     ];
 
     for (const q of queries) {

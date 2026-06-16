@@ -4,6 +4,7 @@ export interface Usuario {
   email: string;
   rol: 'admin' | 'user';
   activo: boolean;
+  avatarSeed?: string | null;
   createdAt?: string;
 }
 

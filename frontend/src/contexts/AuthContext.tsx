@@ -6,6 +6,7 @@ export interface AuthContextType {
   token: string | null;
   login: (token: string, usuario: Usuario) => void;
   logout: () => void;
+  updateUsuario: (usuario: Usuario) => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
@@ -42,6 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsuario(null);
   };
 
+  const updateUsuario = (updatedUsuario: Usuario) => {
+    localStorage.setItem('usuario', JSON.stringify(updatedUsuario));
+    setUsuario(updatedUsuario);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -49,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         login,
         logout,
+        updateUsuario,
         isAuthenticated: !!token,
         isAdmin: usuario?.rol === 'admin',
         isLoading,

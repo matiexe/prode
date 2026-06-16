@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
+
+import html2canvas from 'html2canvas';
+import ShareStatsImage from '../components/ShareStatsImage';
 
 import { listarUsuarios, crearUsuario, desactivarUsuario, actualizarUsuario } from '../api/usuarios';
 import { listarPartidos, generarFixture, eliminarFixture, cargarResultado, cerrarFase } from '../api/partidos';
@@ -19,6 +22,9 @@ export default function AdminPanel() {
   const { usuario, logout } = useAuth();
   const [tab, setTab] = useState<Tab>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const shareRef = useRef<HTMLDivElement>(null);
+  const [generandoImagen, setGenerandoImagen] = useState(false);
 
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [insights, setInsights] = useState<AdminInsights | null>(null);
@@ -212,6 +218,29 @@ export default function AdminPanel() {
       setMensaje('Configuracion actualizada');
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDescargarStats = async () => {
+    if (!shareRef.current) return;
+    setGenerandoImagen(true);
+    try {
+      const canvas = await html2canvas(shareRef.current, {
+        scale: 2, // High resolution
+        backgroundColor: '#101415',
+        logging: false,
+        useCORS: true,
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `prode_stats_${new Date().toISOString().split('T')[0]}.png`;
+      link.click();
+    } catch (err) {
+      console.error('Error al generar imagen:', err);
+      setMensaje('Error al generar la imagen de estadísticas');
+    } finally {
+      setGenerandoImagen(false);
     }
   };
 
@@ -575,6 +604,10 @@ export default function AdminPanel() {
                   <span className="material-symbols-outlined">manage_accounts</span>
                   Gestionar Usuarios
                 </button>
+                <button className="admin-btn secondary" onClick={handleDescargarStats} disabled={generandoImagen || !insights}>
+                  <span className="material-symbols-outlined">ios_share</span>
+                  {generandoImagen ? 'Generando...' : 'Compartir Stats'}
+                </button>
               </div>
             </div>
           </section>
@@ -918,6 +951,13 @@ export default function AdminPanel() {
           </section>
         )}
       </main>
+
+      {/* Hidden element for rendering the share image */}
+      {insights?.shareData && (
+        <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+          <ShareStatsImage ref={shareRef} data={insights.shareData} />
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '../contexts/useAuth';
+import { cambiarAvatar } from '../api/auth';
 import { listarPartidos } from '../api/partidos';
 import { obtenerMisPronosticos, guardarPronostico } from '../api/pronosticos';
 import { obtenerConfiguracion } from '../api/configuracion';
@@ -10,7 +11,7 @@ import type { EquipoPosicion } from '../components/TablaGrupo';
 import type { Partido, Pronostico, ConfiguracionPuntos } from '../types';
 
 export default function Dashboard() {
-  const { usuario, logout } = useAuth();
+  const { usuario, logout, updateUsuario } = useAuth();
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [pronosticos, setPronosticos] = useState<Pronostico[]>([]);
   const [config, setConfig] = useState<ConfiguracionPuntos | null>(null);
@@ -23,8 +24,25 @@ export default function Dashboard() {
   const pendingRef = useRef<Map<number, { local: string; visitante: string }>>(new Map());
   const [pendingCount, setPendingCount] = useState(0);
   const [savingAll, setSavingAll] = useState(false);
+  const [cambiandoAvatar, setCambiandoAvatar] = useState(false);
 
   const grupos = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+
+  const handleCambiarAvatar = async () => {
+    setCambiandoAvatar(true);
+    try {
+      // Generamos un string aleatorio para el nuevo avatar
+      const newSeed = Math.random().toString(36).substring(2, 10);
+      const updatedUser = await cambiarAvatar(newSeed);
+      updateUsuario(updatedUser);
+      setMensaje({ texto: 'Avatar actualizado', tipo: 'success' });
+    } catch (err) {
+      console.error('Error al cambiar avatar:', err);
+      setMensaje({ texto: 'Error al cambiar avatar', tipo: 'error' });
+    } finally {
+      setCambiandoAvatar(false);
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -294,7 +312,17 @@ export default function Dashboard() {
     <div className="page dashboard">
       <div className="dashboard-header glass-card" style={{ padding: '2rem', borderRadius: '24px', border: '1px solid rgba(0, 229, 255, 0.15)', marginBottom: '3rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-          <UserAvatar name={usuario?.nombre || 'User'} size={80} className="avatar-glow" />
+          <div className="avatar-container">
+            <UserAvatar name={usuario?.avatarSeed || usuario?.nombre || 'User'} size={80} className="avatar-glow" />
+            <button 
+              className="btn-change-avatar" 
+              onClick={handleCambiarAvatar} 
+              disabled={cambiandoAvatar}
+              title="Cambiar Avatar"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>{cambiandoAvatar ? 'sync' : 'casino'}</span>
+            </button>
+          </div>
           <div style={{ flex: 1, minWidth: '200px' }}>
             <h1 style={{ margin: 0, fontSize: '2rem' }}>Hola, {usuario?.nombre}</h1>
             <p className="subtitle" style={{ margin: '0.5rem 0 0' }}>Gestiona tus pronósticos y sigue los resultados en vivo.</p>

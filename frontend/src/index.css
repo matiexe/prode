@@ -2303,3 +2303,38 @@ body::after {
   height: 100%;
 }
 
+.avatar-container {
+  position: relative;
+  display: inline-block;
+}
+
+.btn-change-avatar {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: var(--surface-container-high);
+  border: 1px solid var(--border);
+  color: var(--on-surface);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  transition: all 0.2s ease;
+}
+
+.btn-change-avatar:hover {
+  background: var(--primary);
+  color: var(--surface);
+  transform: scale(1.1) rotate(15deg);
+}
+
+.btn-change-avatar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
