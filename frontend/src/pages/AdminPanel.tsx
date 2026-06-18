@@ -991,7 +991,11 @@ export default function AdminPanel() {
       {/* Hidden element for rendering the share image */}
       {insights?.shareData && (
         <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-          <ShareStatsImage ref={shareRef} data={insights.shareData} />
+          <ShareStatsImage 
+            ref={shareRef} 
+            data={insights.shareData} 
+            contexto={jornadaFiltro ? `Jornada ${jornadaFiltro}` : faseFiltro === 'grupos' ? 'Fase de Grupos' : faseFiltro.toUpperCase()}
+          />
         </div>
       )}
     </div>
