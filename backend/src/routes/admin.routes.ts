@@ -232,6 +232,60 @@ router.get('/stats/insights', async (_req: AuthRequest, res: Response): Promise<
   }
 });
 
+router.post('/stats/share', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { partidoIds } = req.body;
+    let whereClause = {};
+    if (partidoIds && Array.isArray(partidoIds) && partidoIds.length > 0) {
+      whereClause = { partidoId: { [Op.in]: partidoIds } };
+    }
+
+    const configExacto = await ConfiguracionPuntos.findOne({ where: { tipo: 'exacto', activo: true } });
+    const valorExacto = configExacto?.puntos || 3;
+
+    const pronosticosFiltrados = await Pronostico.findAll({ where: whereClause, raw: true }) as any[];
+    const allUsers = await Usuario.findAll({ where: { activo: true, rol: 'user' }, raw: true }) as any[];
+    
+    let globalCerteros = 0;
+    let globalParciales = 0;
+    
+    const userStatsMap: Record<number, any> = {};
+    allUsers.forEach(u => {
+      userStatsMap[u.id] = { id: u.id, nombre: u.nombre, avatarSeed: u.avatarSeed, puntos: 0, certeros: 0, parciales: 0, total: 0 };
+    });
+
+    pronosticosFiltrados.forEach(p => {
+      const pts = p.puntosObtenidos || 0;
+      if (userStatsMap[p.usuarioId]) {
+        userStatsMap[p.usuarioId].total++;
+        userStatsMap[p.usuarioId].puntos += pts;
+        if (pts === valorExacto) {
+          userStatsMap[p.usuarioId].certeros++;
+          globalCerteros++;
+        } else if (pts > 0) {
+          userStatsMap[p.usuarioId].parciales++;
+          globalParciales++;
+        }
+      }
+    });
+
+    const ranking = Object.values(userStatsMap).sort((a: any, b: any) => b.puntos - a.puntos);
+    const top3Share = ranking.slice(0, 3);
+
+    res.json({
+      top3: top3Share,
+      global: {
+        certeros: globalCerteros,
+        parciales: globalParciales,
+        total: pronosticosFiltrados.length
+      }
+    });
+  } catch (error) {
+    console.error('Error al generar share data:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 router.get('/pronosticos/:usuarioId', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { usuarioId } = req.params;

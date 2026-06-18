@@ -77,3 +77,8 @@ export const obtenerPronosticosUsuario = async (usuarioId: number): Promise<Pron
   const { data } = await client.get(`/admin/pronosticos/${usuarioId}`);
   return data;
 };
+
+export const obtenerShareData = async (partidoIds?: number[]) => {
+  const { data } = await client.post('/admin/stats/share', { partidoIds });
+  return data;
+};
