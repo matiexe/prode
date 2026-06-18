@@ -36,6 +36,7 @@ export default function AdminPanel() {
   const [partidoModal, setPartidoModal] = useState<Partido | null>(null);
   const [faseFiltro, setFaseFiltro] = useState('grupos');
   const [grupoFiltro, setGrupoFiltro] = useState('');
+  const [jornadaFiltro, setJornadaFiltro] = useState(''); // Nuevo filtro de jornada
 
   // Estados del Buscador
   const [buscadorUsuarioId, setBuscadorUsuarioId] = useState<string>('');
@@ -543,7 +544,7 @@ export default function AdminPanel() {
                       {stats.topCerteros.map((u, i) => (
                         <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px' }}>
                           <div style={{ fontWeight: 800, color: 'var(--outline)', width: '20px' }}>{i + 1}</div>
-                          <UserAvatar name={u.nombre} size={32} />
+                          <UserAvatar name={u.avatarSeed || u.nombre} size={32} />
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{u.nombre}</div>
                             <div style={{ fontSize: '0.7rem', color: 'var(--outline)' }}>{u.email}</div>
@@ -604,7 +605,7 @@ export default function AdminPanel() {
                   <span className="material-symbols-outlined">manage_accounts</span>
                   Gestionar Usuarios
                 </button>
-                <button className="admin-btn secondary" onClick={handleDescargarStats} disabled={generandoImagen || !insights}>
+                <button className="admin-btn secondary" onClick={handleDescargarStats} disabled={generandoImagen || !insights?.shareData}>
                   <span className="material-symbols-outlined">ios_share</span>
                   {generandoImagen ? 'Generando...' : 'Compartir Stats'}
                 </button>
@@ -777,7 +778,7 @@ export default function AdminPanel() {
                 <button
                   key={f}
                   className={`fase-tab ${faseFiltro === f ? 'active' : ''}`}
-                  onClick={() => { setFaseFiltro(f); setGrupoFiltro(''); fetchPartidos(f, ''); }}
+                  onClick={() => { setFaseFiltro(f); setGrupoFiltro(''); setJornadaFiltro(''); fetchPartidos(f, ''); }}
                   style={{ whiteSpace: 'nowrap' }}
                 >
                   {f === 'grupos' ? 'Grupos' : f}
@@ -786,51 +787,86 @@ export default function AdminPanel() {
             </nav>
 
             {faseFiltro === 'grupos' && (
-              <div className="grupo-filtro glass-card" style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', marginBottom: '2rem', width: 'fit-content' }}>
-                <label style={{ fontFamily: 'Anybody', fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--outline)' }}>Filtrar por grupo: </label>
-                <select
-                  value={grupoFiltro}
-                  onChange={(e) => { setGrupoFiltro(e.target.value); fetchPartidos('grupos', e.target.value); }}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}
-                >
-                  <option value="" style={{ background: 'var(--surface-container-high)' }}>Todos los grupos</option>
-                  {['A','B','C','D','E','F','G','H','I','J','K','L'].map((g) => (
-                    <option key={g} value={g} style={{ background: 'var(--surface-container-high)' }}>Grupo {g}</option>
-                  ))}
-                </select>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+                <div className="grupo-filtro glass-card" style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', width: 'fit-content', margin: 0 }}>
+                  <label style={{ fontFamily: 'Anybody', fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--outline)' }}>Filtrar por grupo: </label>
+                  <select
+                    value={grupoFiltro}
+                    onChange={(e) => { setGrupoFiltro(e.target.value); fetchPartidos('grupos', e.target.value); }}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}
+                  >
+                    <option value="" style={{ background: 'var(--surface-container-high)' }}>Todos los grupos</option>
+                    {['A','B','C','D','E','F','G','H','I','J','K','L'].map((g) => (
+                      <option key={g} value={g} style={{ background: 'var(--surface-container-high)' }}>Grupo {g}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grupo-filtro glass-card" style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', width: 'fit-content', margin: 0 }}>
+                  <label style={{ fontFamily: 'Anybody', fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--outline)' }}>Jornada: </label>
+                  <select value={jornadaFiltro} onChange={(e) => setJornadaFiltro(e.target.value)} style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
+                    <option value="" style={{ background: 'var(--surface-container-high)' }}>Todas las fechas</option>
+                    <option value="1" style={{ background: 'var(--surface-container-high)' }}>Fecha 1</option>
+                    <option value="2" style={{ background: 'var(--surface-container-high)' }}>Fecha 2</option>
+                    <option value="3" style={{ background: 'var(--surface-container-high)' }}>Fecha 3</option>
+                  </select>
+                </div>
               </div>
             )}
 
             <div className="partidos-grid">
-              {partidos.filter((p) => p.estado !== 'finalizado').map((p) => (
-                <article key={p.id} className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                    <span className="fase-tag">{p.fase} {p.grupo ? `- Grupo ${p.grupo}` : ''}</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--outline)' }}>
-                      {new Date(p.fechaHora).toLocaleDateString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', margin: '1rem 0' }}>
-                    <div style={{ textAlign: 'center', flex: 1 }}>
-                      {getFlagUrl(p.equipoLocal) && <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} alt="" style={{ width: '24px', height: '18px', marginBottom: '0.25rem' }} />}
-                      <div style={{ fontSize: '0.75rem', fontWeight: 700 }}>{p.equipoLocal}</div>
+              {(() => {
+                let filtrados = partidos.filter((p) => p.estado !== 'finalizado');
+                
+                if (faseFiltro === 'grupos' && jornadaFiltro) {
+                  // Agrupar por letra de grupo para inferir la jornada cronológicamente
+                  const partidosConJornada = filtrados.reduce((acc, p) => {
+                    if (!acc[p.grupo || '']) acc[p.grupo || ''] = [];
+                    acc[p.grupo || ''].push(p);
+                    return acc;
+                  }, {} as Record<string, Partido[]>);
+
+                  Object.values(partidosConJornada).forEach(grupoPartidos => {
+                    grupoPartidos.sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime());
+                    grupoPartidos.forEach((p, index) => {
+                      if (index < 2) (p as any)._jornada = '1';
+                      else if (index < 4) (p as any)._jornada = '2';
+                      else (p as any)._jornada = '3';
+                    });
+                  });
+                  
+                  filtrados = filtrados.filter(p => (p as any)._jornada === jornadaFiltro);
+                }
+
+                return filtrados.map((p) => (
+                  <article key={p.id} className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                      <span className="fase-tag">{p.fase} {p.grupo ? `- Grupo ${p.grupo}` : ''}</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--outline)' }}>
+                        {new Date(p.fechaHora).toLocaleDateString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
-                    <span style={{ fontWeight: 800, color: 'var(--outline)', opacity: 0.5 }}>VS</span>
-                    <div style={{ textAlign: 'center', flex: 1 }}>
-                      {getFlagUrl(p.equipoVisitante) && <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} alt="" style={{ width: '24px', height: '18px', marginBottom: '0.25rem' }} />}
-                      <div style={{ fontSize: '0.75rem', fontWeight: 700 }}>{p.equipoVisitante}</div>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', margin: '1rem 0' }}>
+                      <div style={{ textAlign: 'center', flex: 1 }}>
+                        {getFlagUrl(p.equipoLocal) && <img className="flag-icon" src={getFlagUrl(p.equipoLocal)} alt="" style={{ width: '24px', height: '18px', marginBottom: '0.25rem' }} />}
+                        <div style={{ fontSize: '0.75rem', fontWeight: 700 }}>{p.equipoLocal}</div>
+                      </div>
+                      <span style={{ fontWeight: 800, color: 'var(--outline)', opacity: 0.5 }}>VS</span>
+                      <div style={{ textAlign: 'center', flex: 1 }}>
+                        {getFlagUrl(p.equipoVisitante) && <img className="flag-icon" src={getFlagUrl(p.equipoVisitante)} alt="" style={{ width: '24px', height: '18px', marginBottom: '0.25rem' }} />}
+                        <div style={{ fontSize: '0.75rem', fontWeight: 700 }}>{p.equipoVisitante}</div>
+                      </div>
                     </div>
-                  </div>
-                  <button 
-                    className="admin-btn primary" 
-                    style={{ width: '100%', marginTop: '1rem' }}
-                    onClick={() => setPartidoModal(p)}
-                  >
-                    <span className="material-symbols-outlined">add_circle</span>
-                    Cargar Resultado
-                  </button>
-                </article>
-              ))}
+                    <button 
+                      className="admin-btn primary" 
+                      style={{ width: '100%', marginTop: '1rem' }}
+                      onClick={() => setPartidoModal(p)}
+                    >
+                      <span className="material-symbols-outlined">add_circle</span>
+                      Cargar Resultado
+                    </button>
+                  </article>
+                ));
+              })()}
             </div>
 
             {partidoModal && (

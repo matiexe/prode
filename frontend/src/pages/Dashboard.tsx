@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [config, setConfig] = useState<ConfiguracionPuntos | null>(null);
   const [fase, setFase] = useState('grupos');
   const [grupo, setGrupo] = useState('');
+  const [jornada, setJornada] = useState(''); // Nuevo filtro de jornada
   const [loading, setLoading] = useState(true);
   const [mensaje, setMensaje] = useState<{ texto: string; tipo: 'success' | 'error' } | null>(null);
   const timerRef = useRef<any>(null);
@@ -57,8 +58,6 @@ export default function Dashboard() {
       const t = Date.now();
       
       try {
-        // Ejecutamos las peticiones con un pequeño delay entre ellas o en paralelo
-        // pero capturando errores individuales para mejor diagnóstico
         const [partidosRes, pronoRes, configRes] = await Promise.allSettled([
           listarPartidos(undefined, undefined, t),
           obtenerMisPronosticos(t),
@@ -84,7 +83,6 @@ export default function Dashboard() {
           texto: 'Conexión lenta detectada. Los datos se están cargando...', 
           tipo: 'error' 
         });
-        // Reintento silencioso en 3 segundos
         setTimeout(fetchData, 3000);
       } finally {
         setLoading(false);
@@ -271,11 +269,35 @@ export default function Dashboard() {
 
   const partidosFiltrados = useMemo(() => {
     let filtrados = partidos.filter(p => p.fase === fase);
-    if (fase === 'grupos' && grupo) {
-      filtrados = filtrados.filter(p => p.grupo === grupo);
+    
+    if (fase === 'grupos') {
+      // Inferencia dinámica de jornadas
+      const partidosConJornada = filtrados.reduce((acc, p) => {
+        if (!acc[p.grupo || '']) acc[p.grupo || ''] = [];
+        acc[p.grupo || ''].push(p);
+        return acc;
+      }, {} as Record<string, Partido[]>);
+
+      Object.values(partidosConJornada).forEach(grupoPartidos => {
+        grupoPartidos.sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime());
+        grupoPartidos.forEach((p, index) => {
+          if (index < 2) (p as any)._jornada = '1';
+          else if (index < 4) (p as any)._jornada = '2';
+          else (p as any)._jornada = '3';
+        });
+      });
+
+      if (grupo) {
+        filtrados = filtrados.filter(p => p.grupo === grupo);
+      }
+      
+      if (jornada) {
+        filtrados = filtrados.filter(p => (p as any)._jornada === jornada);
+      }
     }
+
     return filtrados.sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime());
-  }, [partidos, fase, grupo]);
+  }, [partidos, fase, grupo, jornada]);
   
   const hoy = new Date();
   
@@ -417,7 +439,7 @@ export default function Dashboard() {
           <button
             key={f}
             className={`fase-tab ${fase === f ? 'active' : ''}`}
-            onClick={() => { setFase(f); setGrupo(''); }}
+            onClick={() => { setFase(f); setGrupo(''); setJornada(''); }}
           >
             {f === 'grupos' ? 'Fase de Grupos' :
              f === '16vos' ? '16vos' :
@@ -429,17 +451,28 @@ export default function Dashboard() {
         ))}
       </nav>
 
-      <div className="dashboard-content" style={{ display: 'grid', gridTemplateColumns: fase === 'grupos' && !grupo && tablaProyectada ? '1fr 320px' : '1fr', gap: '2rem' }}>
+      <div className="dashboard-content" style={{ display: 'grid', gridTemplateColumns: fase === 'grupos' && !grupo && !jornada && tablaProyectada ? '1fr 320px' : '1fr', gap: '2rem' }}>
         <div className="dashboard-left">
           {fase === 'grupos' && (
-            <div className="grupo-filtro glass-card" style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', width: 'fit-content' }}>
-              <label style={{ fontFamily: 'Anybody', fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--outline)' }}>Filtrar por grupo: </label>
-              <select value={grupo} onChange={(e) => setGrupo(e.target.value)} style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
-                <option value="" style={{ background: 'var(--surface-container-high)' }}>Todos los grupos</option>
-                {grupos.map((g) => (
-                  <option key={g} value={g} style={{ background: 'var(--surface-container-high)' }}>Grupo {g}</option>
-                ))}
-              </select>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+              <div className="grupo-filtro glass-card" style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', width: 'fit-content', margin: 0 }}>
+                <label style={{ fontFamily: 'Anybody', fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--outline)' }}>Filtrar por grupo: </label>
+                <select value={grupo} onChange={(e) => setGrupo(e.target.value)} style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <option value="" style={{ background: 'var(--surface-container-high)' }}>Todos los grupos</option>
+                  {grupos.map((g) => (
+                    <option key={g} value={g} style={{ background: 'var(--surface-container-high)' }}>Grupo {g}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grupo-filtro glass-card" style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', width: 'fit-content', margin: 0 }}>
+                <label style={{ fontFamily: 'Anybody', fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--outline)' }}>Jornada: </label>
+                <select value={jornada} onChange={(e) => setJornada(e.target.value)} style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>
+                  <option value="" style={{ background: 'var(--surface-container-high)' }}>Todas las fechas</option>
+                  <option value="1" style={{ background: 'var(--surface-container-high)' }}>Fecha 1</option>
+                  <option value="2" style={{ background: 'var(--surface-container-high)' }}>Fecha 2</option>
+                  <option value="3" style={{ background: 'var(--surface-container-high)' }}>Fecha 3</option>
+                </select>
+              </div>
             </div>
           )}
 
@@ -499,7 +532,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {fase === 'grupos' && !grupo && tablaProyectada && (
+        {fase === 'grupos' && !grupo && !jornada && tablaProyectada && (
           <aside className="dashboard-right">
             <header style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>analytics</span>
