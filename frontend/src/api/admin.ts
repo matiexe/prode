@@ -18,6 +18,7 @@ export interface AdminStats {
     id: number;
     nombre: string;
     email: string;
+    avatarSeed?: string | null;
     aciertos: number;
   }>;
 }

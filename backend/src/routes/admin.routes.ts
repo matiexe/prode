@@ -70,11 +70,12 @@ router.get('/stats', async (_req: AuthRequest, res: Response): Promise<void> => 
     });
 
     const topCerteros = await Promise.all(counts.map(async (item: any) => {
-      const u = await Usuario.findByPk(item.usuarioId, { attributes: ['nombre', 'email'] });
+      const u = await Usuario.findByPk(item.usuarioId, { attributes: ['nombre', 'email', 'avatarSeed'] });
       return {
         id: item.usuarioId,
         nombre: u?.nombre || 'Desconocido',
         email: u?.email || '',
+        avatarSeed: u?.avatarSeed || null,
         aciertos: parseInt(item.cantidad, 10)
       };
     }));
