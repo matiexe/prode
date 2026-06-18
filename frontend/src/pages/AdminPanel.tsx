@@ -8,7 +8,7 @@ import ShareStatsImage from '../components/ShareStatsImage';
 import { listarUsuarios, crearUsuario, desactivarUsuario, actualizarUsuario } from '../api/usuarios';
 import { listarPartidos, generarFixture, eliminarFixture, cargarResultado, cerrarFase } from '../api/partidos';
 import { obtenerConfiguracion, actualizarConfiguracion } from '../api/configuracion';
-import { obtenerAdminStats, obtenerAdminInsights, obtenerPronosticosUsuario } from '../api/admin';
+import { obtenerAdminStats, obtenerAdminInsights, obtenerPronosticosUsuario, obtenerShareData } from '../api/admin';
 import type { AdminStats, AdminInsights } from '../api/admin';
 import { getFlagUrl } from '../utils/flags';
 import UserAvatar from '../components/UserAvatar';
@@ -25,6 +25,9 @@ export default function AdminPanel() {
 
   const shareRef = useRef<HTMLDivElement>(null);
   const [generandoImagen, setGenerandoImagen] = useState(false);
+  const [shareFiltro, setShareFiltro] = useState('global');
+  const [shareDataVisual, setShareDataVisual] = useState<any>(null);
+  const [shareContextoVisual, setShareContextoVisual] = useState('Resumen Global');
 
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [insights, setInsights] = useState<AdminInsights | null>(null);
@@ -59,6 +62,7 @@ export default function AdminPanel() {
     if (tab === 'dashboard') {
       fetchStats();
       fetchInsights();
+      fetchPartidos(); // Necesitamos los partidos cargados para poder calcular los filtros del share
     }
     else if (tab === 'usuarios' || tab === 'buscador') fetchUsuarios();
     else if (tab === 'cargar' || tab === 'finalizados') fetchPartidos();
@@ -222,10 +226,59 @@ export default function AdminPanel() {
     }
   };
 
+  const getIdsForFilter = (filtro: string): number[] | undefined => {
+    if (filtro === 'global') return undefined;
+    if (filtro === 'grupos') return partidos.filter(p => p.fase === 'grupos').map(p => p.id);
+    if (filtro === 'fase_final') return partidos.filter(p => p.fase !== 'grupos').map(p => p.id);
+    
+    if (filtro.startsWith('jornada')) {
+      const numJornada = filtro.replace('jornada', '');
+      const gruposPartidos = partidos.filter(p => p.fase === 'grupos').reduce((acc, p) => {
+        if (!acc[p.grupo || '']) acc[p.grupo || ''] = [];
+        acc[p.grupo || ''].push(p);
+        return acc;
+      }, {} as Record<string, Partido[]>);
+      
+      const ids: number[] = [];
+      Object.values(gruposPartidos).forEach(gp => {
+        gp.sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime());
+        if (numJornada === '1') {
+          if (gp[0]) ids.push(gp[0].id);
+          if (gp[1]) ids.push(gp[1].id);
+        } else if (numJornada === '2') {
+          if (gp[2]) ids.push(gp[2].id);
+          if (gp[3]) ids.push(gp[3].id);
+        } else if (numJornada === '3') {
+          if (gp[4]) ids.push(gp[4].id);
+          if (gp[5]) ids.push(gp[5].id);
+        }
+      });
+      return ids;
+    }
+    return undefined;
+  };
+
+  const getLabelForFilter = (filtro: string) => {
+    if (filtro === 'global') return 'Resumen Global';
+    if (filtro === 'grupos') return 'Fase de Grupos';
+    if (filtro === 'fase_final') return 'Fase Final';
+    if (filtro.startsWith('jornada')) return `Jornada ${filtro.replace('jornada', '')}`;
+    return 'Resumen';
+  };
+
   const handleDescargarStats = async () => {
-    if (!shareRef.current) return;
     setGenerandoImagen(true);
     try {
+      const ids = getIdsForFilter(shareFiltro);
+      const data = await obtenerShareData(ids);
+      setShareDataVisual(data);
+      setShareContextoVisual(getLabelForFilter(shareFiltro));
+      
+      // Esperamos a que React renderice el componente oculto con los nuevos datos
+      await new Promise(resolve => setTimeout(resolve, 500)); 
+
+      if (!shareRef.current) throw new Error("Referencia a la imagen no encontrada");
+
       const canvas = await html2canvas(shareRef.current, {
         scale: 2, // High resolution
         backgroundColor: '#101415',
@@ -235,7 +288,7 @@ export default function AdminPanel() {
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download = `prode_stats_${new Date().toISOString().split('T')[0]}.png`;
+      link.download = `prode_stats_${shareFiltro}_${new Date().toISOString().split('T')[0]}.png`;
       link.click();
     } catch (err) {
       console.error('Error al generar imagen:', err);
@@ -586,6 +639,42 @@ export default function AdminPanel() {
                     </div>
                   </div>
                 </div>
+
+                <div className="glass-card" style={{ padding: '2rem', borderRadius: '16px', marginTop: '2rem' }}>
+                  <h3 style={{ fontFamily: 'Anybody', fontSize: '0.9rem', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Exportar Estadísticas</h3>
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <select 
+                      value={shareFiltro} 
+                      onChange={(e) => setShareFiltro(e.target.value)}
+                      style={{ background: 'var(--surface-container-high)', border: '1px solid var(--border)', color: 'var(--on-surface)', padding: '0.75rem 1rem', borderRadius: '8px', fontWeight: 600, fontFamily: 'Anybody' }}
+                    >
+                      <option value="global">Global (Todo el torneo)</option>
+                      <option value="grupos">Fase de Grupos (Completa)</option>
+                      <option value="jornada1">Solo Jornada 1</option>
+                      <option value="jornada2">Solo Jornada 2</option>
+                      <option value="jornada3">Solo Jornada 3</option>
+                      <option value="fase_final">Fase Final (Eliminatorias)</option>
+                    </select>
+                    <button className="admin-btn secondary" onClick={handleDescargarStats} disabled={generandoImagen}>
+                      <span className="material-symbols-outlined">ios_share</span>
+                      {generandoImagen ? 'Generando...' : 'Compartir Stats'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="glass-card" style={{ padding: '2rem', borderRadius: '16px', marginTop: '2rem' }}>
+                  <h3 style={{ fontFamily: 'Anybody', fontSize: '0.9rem', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Acciones Rápidas</h3>
+                  <div className="admin-actions">
+                    <button className="admin-btn primary" onClick={() => setTab('cargar')}>
+                      <span className="material-symbols-outlined">edit_square</span>
+                      Cargar Resultados
+                    </button>
+                    <button className="admin-btn secondary" onClick={() => setTab('usuarios')}>
+                      <span className="material-symbols-outlined">manage_accounts</span>
+                      Gestionar Usuarios
+                    </button>
+                  </div>
+                </div>
               </>
             ) : (
               <div className="empty glass-card" style={{ padding: '3rem', textAlign: 'center', borderRadius: '16px' }}>
@@ -593,24 +682,6 @@ export default function AdminPanel() {
                 <p>No se pudieron cargar las estadísticas.</p>
               </div>
             )}
-
-            <div className="glass-card" style={{ padding: '2rem', borderRadius: '16px', marginTop: '2rem' }}>
-              <h3 style={{ fontFamily: 'Anybody', fontSize: '0.9rem', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Acciones Rápidas</h3>
-              <div className="admin-actions">
-                <button className="admin-btn primary" onClick={() => setTab('cargar')}>
-                  <span className="material-symbols-outlined">edit_square</span>
-                  Cargar Resultados
-                </button>
-                <button className="admin-btn secondary" onClick={() => setTab('usuarios')}>
-                  <span className="material-symbols-outlined">manage_accounts</span>
-                  Gestionar Usuarios
-                </button>
-                <button className="admin-btn secondary" onClick={handleDescargarStats} disabled={generandoImagen || !insights?.shareData}>
-                  <span className="material-symbols-outlined">ios_share</span>
-                  {generandoImagen ? 'Generando...' : 'Compartir Stats'}
-                </button>
-              </div>
-            </div>
           </section>
         )}
 
@@ -989,12 +1060,12 @@ export default function AdminPanel() {
       </main>
 
       {/* Hidden element for rendering the share image */}
-      {insights?.shareData && (
+      {shareDataVisual && (
         <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
           <ShareStatsImage 
             ref={shareRef} 
-            data={insights.shareData} 
-            contexto={jornadaFiltro ? `Jornada ${jornadaFiltro}` : faseFiltro === 'grupos' ? 'Fase de Grupos' : faseFiltro.toUpperCase()}
+            data={shareDataVisual} 
+            contexto={shareContextoVisual}
           />
         </div>
       )}
