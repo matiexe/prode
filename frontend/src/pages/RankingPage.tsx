@@ -4,7 +4,6 @@ import { obtenerRanking } from '../api/pronosticos';
 import { listarPartidos } from '../api/partidos';
 import { solicitarOTP, verificarOTP } from '../api/auth';
 import { useAuth } from '../contexts/useAuth';
-import Brackets from '../components/Brackets';
 import UserAvatar from '../components/UserAvatar';
 import type { RankingEntry, Partido } from '../types';
 import fifaImg from '../assets/fifa.jpg';
@@ -152,18 +151,7 @@ export default function RankingPage() {
             )}
           </div>
 
-          <div className="brackets-section" style={{ marginTop: '3rem' }}>
-            <h2 style={{ 
-              fontFamily: 'Anybody', 
-              fontSize: '1.5rem', 
-              fontWeight: '700', 
-              textTransform: 'uppercase', 
-              marginBottom: '1rem' 
-            }}>
-              Camino a la Final
-            </h2>
-            {loading ? <div className="loading">Cargando llaves...</div> : <Brackets partidos={partidos} />}
-          </div>
+          {/* Se removió la sección Camino a la Final de aquí para pasarla a Posiciones */}
         </div>
 
         <div className="hero-right">
