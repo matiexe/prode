@@ -60,8 +60,8 @@ function calcularTablaConPartidos(partidos: Partido[], grupoNombre: string): Equ
   });
 }
 
-// Función para simular recursivamente el torneo desde 16vos hasta la final
-function simularTorneoCompleto(partidosBase: Partido[]): Partido[] {
+// Función para calcular y proyectar los cruces de 16vos de final basándose en el estado de los grupos
+function simular16vosDeFinal(partidosBase: Partido[]): Partido[] {
   const partidosSim = partidosBase.map(p => ({ ...p }));
 
   const grupos = ['A','B','C','D','E','F','G','H','I','J','K','L'];
@@ -76,15 +76,18 @@ function simularTorneoCompleto(partidosBase: Partido[]): Partido[] {
     if (tabla.length >= 3) terceros.push(tabla[2]);
   }
 
+  // Determinar los 8 mejores terceros utilizando criterios FIFA
   const mejoresTerceros = terceros
     .sort((a, b) => {
       if (b.pts !== a.pts) return b.pts - a.pts;
       if (b.dg !== a.dg) return b.dg - a.dg;
-      return b.gf - a.gf;
+      if (b.gf !== a.gf) return b.gf - a.gf;
+      return a.equipo.localeCompare(b.equipo);
     })
     .slice(0, 8)
     .map(t => t.equipo);
 
+  // Mapear los cruces oficiales del Mundial 2026 para 16vos
   const llaves16vos = [
     { local: segundos['A'], visite: segundos['B'] }, // P73
     { local: primeros['A'], visite: mejoresTerceros[0] }, // P74
@@ -112,122 +115,9 @@ function simularTorneoCompleto(partidosBase: Partido[]): Partido[] {
     }
   });
 
-  const simularPartidoResultado = (local: string, visitante: string) => {
-    if (local === 'Por definir' || visitante === 'Por definir') {
-      return { golesLocal: null, golesVisitante: null, ganador: null };
-    }
-    const gl = Math.floor(Math.random() * 4);
-    const gv = Math.floor(Math.random() * 4);
-    let ganador = '';
-    if (gl > gv) {
-      ganador = local;
-    } else if (gv > gl) {
-      ganador = visitante;
-    } else {
-      ganador = Math.random() > 0.5 ? local : visitante;
-    }
-    return { golesLocal: gl, golesVisitante: gv, ganador };
-  };
-
-  const ganadores16vos: string[] = [];
-  partidos16vos.forEach(p => {
-    if (p.estado === 'finalizado') {
-      ganadores16vos.push(p.ganadorNombre || '');
-    } else {
-      const sim = simularPartidoResultado(p.equipoLocal, p.equipoVisitante);
-      p.golesLocal = sim.golesLocal;
-      p.golesVisitante = sim.golesVisitante;
-      p.ganadorNombre = sim.ganador;
-      p.estado = 'finalizado';
-      ganadores16vos.push(sim.ganador || '');
-    }
-  });
-
-  const partidos8vos = partidosSim.filter(p => p.fase === '8vos').sort((a, b) => a.id - b.id);
-  const ganadores8vos: string[] = [];
-  partidos8vos.forEach((p, idx) => {
-    p.equipoLocal = ganadores16vos[idx * 2] || 'Por definir';
-    p.equipoVisitante = ganadores16vos[idx * 2 + 1] || 'Por definir';
-
-    if (p.estado === 'finalizado') {
-      ganadores8vos.push(p.ganadorNombre || '');
-    } else {
-      const sim = simularPartidoResultado(p.equipoLocal, p.equipoVisitante);
-      p.golesLocal = sim.golesLocal;
-      p.golesVisitante = sim.golesVisitante;
-      p.ganadorNombre = sim.ganador;
-      p.estado = 'finalizado';
-      ganadores8vos.push(sim.ganador || '');
-    }
-  });
-
-  const partidosCuartos = partidosSim.filter(p => p.fase === 'cuartos').sort((a, b) => a.id - b.id);
-  const ganadoresCuartos: string[] = [];
-  partidosCuartos.forEach((p, idx) => {
-    p.equipoLocal = ganadores8vos[idx * 2] || 'Por definir';
-    p.equipoVisitante = ganadores8vos[idx * 2 + 1] || 'Por definir';
-
-    if (p.estado === 'finalizado') {
-      ganadoresCuartos.push(p.ganadorNombre || '');
-    } else {
-      const sim = simularPartidoResultado(p.equipoLocal, p.equipoVisitante);
-      p.golesLocal = sim.golesLocal;
-      p.golesVisitante = sim.golesVisitante;
-      p.ganadorNombre = sim.ganador;
-      p.estado = 'finalizado';
-      ganadoresCuartos.push(sim.ganador || '');
-    }
-  });
-
-  const partidosSemis = partidosSim.filter(p => p.fase === 'semis').sort((a, b) => a.id - b.id);
-  const ganadoresSemis: string[] = [];
-  const perdedoresSemis: string[] = [];
-  partidosSemis.forEach((p, idx) => {
-    p.equipoLocal = ganadoresCuartos[idx * 2] || 'Por definir';
-    p.equipoVisitante = ganadoresCuartos[idx * 2 + 1] || 'Por definir';
-
-    if (p.estado === 'finalizado') {
-      ganadoresSemis.push(p.ganadorNombre || '');
-      perdedoresSemis.push(p.ganadorNombre === p.equipoLocal ? p.equipoVisitante : p.equipoLocal);
-    } else {
-      const sim = simularPartidoResultado(p.equipoLocal, p.equipoVisitante);
-      p.golesLocal = sim.golesLocal;
-      p.golesVisitante = sim.golesVisitante;
-      p.ganadorNombre = sim.ganador;
-      p.estado = 'finalizado';
-      ganadoresSemis.push(sim.ganador || '');
-      perdedoresSemis.push(sim.ganador === p.equipoLocal ? p.equipoVisitante : p.equipoLocal);
-    }
-  });
-
-  const partido3erPuesto = partidosSim.find(p => p.fase === '3er_puesto');
-  if (partido3erPuesto) {
-    partido3erPuesto.equipoLocal = perdedoresSemis[0] || 'Por definir';
-    partido3erPuesto.equipoVisitante = perdedoresSemis[1] || 'Por definir';
-    if (partido3erPuesto.estado !== 'finalizado') {
-      const sim = simularPartidoResultado(partido3erPuesto.equipoLocal, partido3erPuesto.equipoVisitante);
-      partido3erPuesto.golesLocal = sim.golesLocal;
-      partido3erPuesto.golesVisitante = sim.golesVisitante;
-      partido3erPuesto.ganadorNombre = sim.ganador;
-      partido3erPuesto.estado = 'finalizado';
-    }
-  }
-
-  const partidoFinal = partidosSim.find(p => p.fase === 'final');
-  if (partidoFinal) {
-    partidoFinal.equipoLocal = ganadoresSemis[0] || 'Por definir';
-    partidoFinal.equipoVisitante = ganadoresSemis[1] || 'Por definir';
-    if (partidoFinal.estado !== 'finalizado') {
-      const sim = simularPartidoResultado(partidoFinal.equipoLocal, partidoFinal.equipoVisitante);
-      partidoFinal.golesLocal = sim.golesLocal;
-      partidoFinal.golesVisitante = sim.golesVisitante;
-      partidoFinal.ganadorNombre = sim.ganador;
-      partidoFinal.estado = 'finalizado';
-    }
-  }
-
   return partidosSim;
 }
+
 
 export default function GruposPage() {
   const [partidos, setPartidos] = useState<Partido[]>([]);
@@ -263,7 +153,7 @@ export default function GruposPage() {
   }, [partidosSimulados, partidos]);
 
   const handleSimular = () => {
-    const sim = simularTorneoCompleto(partidos);
+    const sim = simular16vosDeFinal(partidos);
     setPartidosSimulados(sim);
   };
 
@@ -364,7 +254,7 @@ export default function GruposPage() {
               </h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)', marginTop: '0.25rem' }}>
                 {partidosSimulados 
-                  ? "Mostrando simulación de llaves basada en los resultados actuales de grupos." 
+                  ? "Mostrando proyección de cruces de 16vos de final calculada a partir del estado actual de los grupos." 
                   : "Se muestran las llaves actuales en la base de datos."}
               </p>
             </div>
@@ -385,7 +275,7 @@ export default function GruposPage() {
                   style={{ fontSize: '0.8rem' }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>auto_awesome</span>
-                  Simular Restante
+                  Simular 16vos
                 </button>
               )}
             </div>
