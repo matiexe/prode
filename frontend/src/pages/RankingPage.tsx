@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { obtenerRanking } from '../api/pronosticos';
-import { listarPartidos } from '../api/partidos';
 import { solicitarOTP, verificarOTP } from '../api/auth';
 import { useAuth } from '../contexts/useAuth';
 import UserAvatar from '../components/UserAvatar';
-import type { RankingEntry, Partido } from '../types';
+import type { RankingEntry } from '../types';
 import fifaImg from '../assets/fifa.jpg';
 
 export default function RankingPage() {
   const { usuario } = useAuth();
   const [ranking, setRanking] = useState<RankingEntry[]>([]);
-  const [partidos, setPartidos] = useState<Partido[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [email, setEmail] = useState('');
@@ -23,12 +21,8 @@ export default function RankingPage() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const [rankingData, partidosData] = await Promise.all([
-          obtenerRanking(),
-          listarPartidos()
-        ]);
+        const rankingData = await obtenerRanking();
         setRanking(rankingData);
-        setPartidos(partidosData);
       } catch (err) {
         console.error('Error al obtener datos:', err);
       } finally {
