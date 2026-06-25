@@ -114,22 +114,22 @@ export async function cerrarFaseGrupos(): Promise<void> {
   }
 
   const llaves = [
-    { local: segundos['A'], visite: segundos['B'] }, // P73
-    { local: primeros['A'], visite: mejoresTerceros[0] }, // P74
-    { local: primeros['B'], visite: mejoresTerceros[1] }, // P75
-    { local: primeros['C'], visite: mejoresTerceros[2] }, // P76
-    { local: primeros['D'], visite: mejoresTerceros[3] }, // P77
-    { local: primeros['E'], visite: segundos['F'] }, // P78
-    { local: primeros['F'], visite: mejoresTerceros[4] }, // P79
-    { local: primeros['G'], visite: mejoresTerceros[5] }, // P80
-    { local: segundos['C'], visite: segundos['D'] }, // P81
-    { local: primeros['H'], visite: segundos['J'] }, // P82
-    { local: primeros['I'], visite: mejoresTerceros[6] }, // P83
-    { local: primeros['J'], visite: segundos['L'] }, // P84
-    { local: primeros['K'], visite: mejoresTerceros[7] }, // P85
-    { local: primeros['L'], visite: segundos['G'] }, // P86 (Simplificado)
-    { local: segundos['G'], visite: segundos['I'] }, // P87
-    { local: segundos['E'], visite: segundos['H'] }, // P88
+    { local: segundos['A'], visite: segundos['B'] }, // P73: 2A vs 2B
+    { local: primeros['E'], visite: mejoresTerceros[0] }, // P74: 1E vs 3rd
+    { local: primeros['F'], visite: segundos['C'] }, // P75: 1F vs 2C
+    { local: primeros['C'], visite: segundos['F'] }, // P76: 1C vs 2F
+    { local: primeros['I'], visite: mejoresTerceros[1] }, // P77: 1I vs 3rd
+    { local: segundos['E'], visite: segundos['I'] }, // P78: 2E vs 2I
+    { local: primeros['A'], visite: mejoresTerceros[2] }, // P79: 1A vs 3rd
+    { local: primeros['L'], visite: mejoresTerceros[3] }, // P80: 1L vs 3rd
+    { local: primeros['D'], visite: mejoresTerceros[4] }, // P81: 1D vs 3rd
+    { local: primeros['G'], visite: mejoresTerceros[5] }, // P82: 1G vs 3rd
+    { local: segundos['K'], visite: segundos['L'] }, // P83: 2K vs 2L
+    { local: primeros['H'], visite: segundos['J'] }, // P84: 1H vs 2J
+    { local: primeros['B'], visite: mejoresTerceros[6] }, // P85: 1B vs 3rd
+    { local: primeros['J'], visite: segundos['H'] }, // P86: 1J vs 2H (Argentina vs 2H)
+    { local: primeros['K'], visite: mejoresTerceros[7] }, // P87: 1K vs 3rd
+    { local: segundos['D'], visite: segundos['G'] }, // P88: 2D vs 2G
   ];
 
   for (let i = 0; i < 16; i++) {
