@@ -152,18 +152,16 @@ export async function cerrarFaseEliminatoria(faseActual: string): Promise<void> 
 
   const partidosActuales = await Partido.findAll({
     where: { fase: faseActual },
-    order: [['fechaHora', 'ASC'], ['id', 'ASC']]
+    order: [['id', 'ASC']]
   });
 
   if (partidosActuales.some(p => p.estado !== 'finalizado')) {
     throw new Error(`Aun hay partidos pendientes en la fase ${faseActual}.`);
   }
 
-  const ganadores = partidosActuales.map(p => p.ganadorNombre).filter(Boolean) as string[];
-
   const partidosSiguientes = await Partido.findAll({
     where: { fase: faseSiguiente },
-    order: [['fechaHora', 'ASC'], ['id', 'ASC']]
+    order: [['id', 'ASC']]
   });
 
   if (partidosSiguientes.length === 0) {
@@ -178,6 +176,7 @@ export async function cerrarFaseEliminatoria(faseActual: string): Promise<void> 
       throw new Error('No se encontro el partido de la Final o del 3er Puesto.');
     }
 
+    const ganadores = partidosActuales.map(p => p.ganadorNombre).filter(Boolean) as string[];
     const perdedores = partidosActuales.map(p => 
       p.ganadorNombre === p.equipoLocal ? p.equipoVisitante : p.equipoLocal
     );
@@ -195,9 +194,39 @@ export async function cerrarFaseEliminatoria(faseActual: string): Promise<void> 
     return;
   }
 
+  // Mapeo oficial de emparejamientos del Mundial 2026 por índices ordenados por ID
+  const MAPEO_CRUCES: Record<string, { local: number, visitante: number }[]> = {
+    '16vos': [ // Mapea de 16vos (16 partidos) a 8vos (8 partidos)
+      { local: 1, visitante: 4 },   // P89: Ganador P74 (idx 1) vs Ganador P77 (idx 4)
+      { local: 0, visitante: 2 },   // P90: Ganador P73 (idx 0) vs Ganador P75 (idx 2)
+      { local: 3, visitante: 5 },   // P91: Ganador P76 (idx 3) vs Ganador P78 (idx 5)
+      { local: 6, visitante: 7 },   // P92: Ganador P79 (idx 6) vs Ganador P80 (idx 7)
+      { local: 10, visitante: 11 }, // P93: Ganador P83 (idx 10) vs Ganador P84 (idx 11)
+      { local: 8, visitante: 9 },   // P94: Ganador P81 (idx 8) vs Ganador P82 (idx 9)
+      { local: 13, visitante: 15 }, // P95: Ganador P86 (idx 13) vs Ganador P88 (idx 15)
+      { local: 12, visitante: 14 }  // P96: Ganador P85 (idx 12) vs Ganador P87 (idx 14)
+    ],
+    '8vos': [ // Mapea de 8vos (8 partidos) a cuartos (4 partidos)
+      { local: 0, visitante: 1 }, // P97: Ganador P89 (idx 0) vs Ganador P90 (idx 1)
+      { local: 4, visitante: 5 }, // P98: Ganador P93 (idx 4) vs Ganador P94 (idx 5)
+      { local: 2, visitante: 3 }, // P99: Ganador P91 (idx 2) vs Ganador P92 (idx 3)
+      { local: 6, visitante: 7 }  // P100: Ganador P95 (idx 6) vs Ganador P96 (idx 7)
+    ],
+    'cuartos': [ // Mapea de cuartos (4 partidos) a semis (2 partidos)
+      { local: 0, visitante: 1 }, // P101: Ganador P97 (idx 0) vs Ganador P98 (idx 1)
+      { local: 2, visitante: 3 }  // P102: Ganador P99 (idx 2) vs Ganador P100 (idx 3)
+    ]
+  };
+
+  const cruces = MAPEO_CRUCES[faseActual];
+  if (!cruces) {
+    throw new Error(`Fase ${faseActual} no configurada para cruces automáticos.`);
+  }
+
   for (let i = 0; i < partidosSiguientes.length; i++) {
-    const local = ganadores[i * 2];
-    const visitante = ganadores[i * 2 + 1];
+    const cruce = cruces[i];
+    const local = partidosActuales[cruce.local]?.ganadorNombre;
+    const visitante = partidosActuales[cruce.visitante]?.ganadorNombre;
 
     await partidosSiguientes[i].update({
       equipoLocal: local || 'Por definir',

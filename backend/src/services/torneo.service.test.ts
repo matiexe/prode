@@ -55,10 +55,10 @@ describe('Torneo Service - Integración', () => {
         order: [['fechaHora', 'ASC']]
       });
 
-      expect(actualizados[0].equipoLocal).toBe('Equipo L0');
-      expect(actualizados[0].equipoVisitante).toBe('Equipo L1');
-      expect(actualizados[7].equipoLocal).toBe('Equipo L14');
-      expect(actualizados[7].equipoVisitante).toBe('Equipo L15');
+      expect(actualizados[0].equipoLocal).toBe('Equipo L1');
+      expect(actualizados[0].equipoVisitante).toBe('Equipo L4');
+      expect(actualizados[7].equipoLocal).toBe('Equipo L12');
+      expect(actualizados[7].equipoVisitante).toBe('Equipo L14');
     });
 
     it('debe generar Final y 3er Puesto correctamente al cerrar Semis', async () => {
