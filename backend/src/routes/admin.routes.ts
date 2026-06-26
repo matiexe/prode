@@ -256,6 +256,12 @@ router.get('/stats', async (_req: AuthRequest, res: Response): Promise<void> => 
       };
     }));
 
+    const { SuscripcionPush } = await import('../models/SuscripcionPush');
+    const usuariosConPush = await SuscripcionPush.count({
+      distinct: true,
+      col: 'usuarioId'
+    });
+
     res.json({
       totalUsuarios,
       usuariosActivos,
@@ -265,7 +271,8 @@ router.get('/stats', async (_req: AuthRequest, res: Response): Promise<void> => 
       partidosPendientes: totalPartidos - partidosFinalizados,
       tasaCobertura,
       usuariosDormidos: dormidos,
-      topCerteros
+      topCerteros,
+      usuariosConPush
     });
   } catch (error) {
     console.error('Error al obtener estadisticas:', error);

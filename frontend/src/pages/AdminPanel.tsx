@@ -473,7 +473,7 @@ export default function AdminPanel() {
 
             {loading ? (
               <div className="admin-config-grid">
-                {[1, 2, 3, 4].map(i => (
+                {[1, 2, 3, 4, 5].map(i => (
                   <div key={i} className="skeleton-card" style={{ height: '120px' }}></div>
                 ))}
               </div>
@@ -522,6 +522,16 @@ export default function AdminPanel() {
                       <span className="material-symbols-outlined" style={{ color: 'var(--primary-fixed)', opacity: 0.5 }}>sports_soccer</span>
                     </div>
                     <p className="hint">Finalizados vs Total.</p>
+                  </div>
+                  <div className="config-card glass-card" style={{ borderLeft: '4px solid #00e5ff' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <label>Alertas Push Activas</label>
+                        <div className="stat-value">{stats.usuariosConPush}</div>
+                      </div>
+                      <span className="material-symbols-outlined" style={{ color: '#00e5ff', opacity: 0.5 }}>notifications_active</span>
+                    </div>
+                    <p className="hint">Usuarios con push activado.</p>
                   </div>
                 </div>
 

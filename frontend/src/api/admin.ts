@@ -21,6 +21,7 @@ export interface AdminStats {
     avatarSeed?: string | null;
     aciertos: number;
   }>;
+  usuariosConPush: number;
 }
 
 export interface AdminInsights {
