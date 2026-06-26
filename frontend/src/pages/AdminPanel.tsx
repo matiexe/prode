@@ -228,15 +228,25 @@ export default function AdminPanel() {
   };
 
   const handleEnviarTestGlobal = async () => {
-    if (!window.confirm('¿Enviar una notificación de prueba a TODOS los usuarios registrados con alertas activas?')) return;
+    console.log('[ADMIN-PUSH] handleEnviarTestGlobal iniciado.');
+    if (!window.confirm('¿Enviar una notificación de prueba a TODOS los usuarios registrados con alertas activas?')) {
+      console.log('[ADMIN-PUSH] Envío global cancelado por el usuario.');
+      return;
+    }
     setEnviandoTestPush(true);
     setMensaje('');
     try {
+      console.log('[ADMIN-PUSH] Enviando solicitud POST a /api/admin/test-push-global...');
       const res = await enviarTestPushGlobal();
+      console.log('[ADMIN-PUSH] Respuesta exitosa recibida del servidor:', res);
       setMensaje(res.mensaje);
     } catch (err: any) {
-      setMensaje(err.response?.data?.error || 'Error al enviar notificación de prueba global');
+      console.error('[ADMIN-PUSH] Error capturado al enviar notificación global:', err);
+      const errMsg = err.response?.data?.error || err.message || 'Error al enviar notificación de prueba global';
+      console.error('[ADMIN-PUSH] Mensaje de error formateado a mostrar:', errMsg);
+      setMensaje(errMsg);
     } finally {
+      console.log('[ADMIN-PUSH] Finalizado handleEnviarTestGlobal, reseteando estado.');
       setEnviandoTestPush(false);
     }
   };
