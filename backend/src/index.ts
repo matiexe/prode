@@ -15,6 +15,7 @@ import pronosticosRoutes from './routes/pronosticos.routes';
 import configuracionRoutes from './routes/configuracion.routes';
 import adminRoutes from './routes/admin.routes';
 import seedRoutes from './routes/seed.routes';
+import notificacionesRoutes from './routes/notificaciones.routes';
 
 dotenv.config();
 
@@ -41,6 +42,8 @@ app.use('/api/admin/partidos', partidosAdminRouter);
 app.use('/api/pronosticos', pronosticosRoutes);
 app.use('/api/admin/configuracion', configuracionRoutes);
 app.use('/api/seed', seedRoutes);
+app.use('/api/notificaciones', notificacionesRoutes);
+
 
 let dbInitializationPromise: Promise<void> | null = null;
 

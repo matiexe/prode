@@ -28,5 +28,11 @@
       "dest": "frontend/index.html",
       "check": true
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/notificaciones/cron-pendientes",
+      "schedule": "0 12 * * *"
+    }
   ]
 }

@@ -324,8 +324,23 @@ router.post('/db-fix', async (_req: AuthRequest, res: Response): Promise<void> =
       { name: 'goles_visitante', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_visitante" INTEGER' },
       { name: 'estado', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "estado" VARCHAR(20) DEFAULT \'pendiente\'' },
       { name: 'ultimo_acceso', sql: 'ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "ultimo_acceso" TIMESTAMP WITH TIME ZONE' },
-      { name: 'avatar_seed', sql: 'ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "avatar_seed" VARCHAR(100)' }
+      { name: 'avatar_seed', sql: 'ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "avatar_seed" VARCHAR(100)' },
+      {
+        name: 'tabla_suscripciones_push',
+        sql: `
+          CREATE TABLE IF NOT EXISTS "suscripciones_push" (
+            "id" SERIAL PRIMARY KEY,
+            "usuario_id" INTEGER NOT NULL REFERENCES "usuarios" ("id") ON DELETE CASCADE,
+            "endpoint" TEXT NOT NULL UNIQUE,
+            "p256dh" VARCHAR(255) NOT NULL,
+            "auth" VARCHAR(255) NOT NULL,
+            "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+          )
+        `
+      }
     ];
+
 
     for (const q of queries) {
       try {

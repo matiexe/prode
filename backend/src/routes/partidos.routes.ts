@@ -169,6 +169,31 @@ partidosAdminRouter.put('/:id/resultado', async (req: AuthRequest, res: Response
   }
 });
 
+partidosAdminRouter.post('/:id/recalcular', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const partido = await Partido.findByPk(id);
+    if (!partido) {
+      res.status(404).json({ error: 'Partido no encontrado' });
+      return;
+    }
+
+    if (partido.estado !== 'finalizado') {
+      res.status(400).json({ error: 'El partido no se encuentra finalizado. Debe cargarse un resultado primero.' });
+      return;
+    }
+
+    const { calcularPuntosPronosticos } = await import('../services/puntuacion.service');
+    await calcularPuntosPronosticos(Number(id));
+
+    res.json({ mensaje: 'Puntos de pronósticos recalculados correctamente para el partido', partido });
+  } catch (error) {
+    console.error('Error al recalcular puntos del partido:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+
 partidosAdminRouter.post('/cerrar-fase', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { fase } = req.body;

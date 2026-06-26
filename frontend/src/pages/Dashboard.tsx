@@ -27,6 +27,13 @@ export default function Dashboard() {
   const [savingAll, setSavingAll] = useState(false);
   const [cambiandoAvatar, setCambiandoAvatar] = useState(false);
 
+  // Estados de Notificaciones Push
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
+  const [activeSubscription, setActiveSubscription] = useState<PushSubscription | null>(null);
+
   const grupos = ['A','B','C','D','E','F','G','H','I','J','K','L'];
 
   const handleCambiarAvatar = async () => {
@@ -43,6 +50,86 @@ export default function Dashboard() {
     } finally {
       setCambiandoAvatar(false);
     }
+  };
+
+  // Cargar estado de notificaciones push al iniciar
+  useEffect(() => {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      setPushSupported(true);
+      setPushPermission(Notification.permission);
+      
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.pushManager.getSubscription().then((sub) => {
+          if (sub) {
+            setPushSubscribed(true);
+            setActiveSubscription(sub);
+          }
+        });
+      });
+    }
+  }, []);
+
+  const handleTogglePush = async () => {
+    if (!pushSupported) return;
+    setSubscribing(true);
+
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      
+      if (pushSubscribed && activeSubscription) {
+        // Desuscribirse en el navegador
+        await activeSubscription.unsubscribe();
+        const { desuscribirPush } = await import('../api/notificaciones');
+        await desuscribirPush(activeSubscription.endpoint);
+        setPushSubscribed(false);
+        setActiveSubscription(null);
+        setMensaje({ texto: 'Notificaciones desactivadas', tipo: 'success' });
+      } else {
+        // Solicitar permisos push
+        const permission = await Notification.requestPermission();
+        setPushPermission(permission);
+        if (permission !== 'granted') {
+          setMensaje({ texto: 'Permiso denegado para recibir notificaciones', tipo: 'error' });
+          setSubscribing(false);
+          return;
+        }
+
+        // Obtener la clave pública VAPID
+        const { getVapidPublicKey, suscribirPush } = await import('../api/notificaciones');
+        const vapidPublicKey = await getVapidPublicKey();
+        
+        // Convertir la clave y suscribirse
+        const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedKey,
+        });
+
+        // Guardar la suscripción en el backend
+        await suscribirPush(sub);
+
+        setPushSubscribed(true);
+        setActiveSubscription(sub);
+        setMensaje({ texto: '¡Notificaciones activadas con éxito!', tipo: 'success' });
+      }
+    } catch (err: any) {
+      console.error('Error al configurar notificaciones push:', err);
+      setMensaje({ texto: 'Error al configurar notificaciones: ' + (err.message || ''), tipo: 'error' });
+    } finally {
+      setSubscribing(false);
+      setTimeout(() => setMensaje(null), 4000);
+    }
+  };
+
+  const handleTestNotification = async () => {
+    try {
+      const { enviarNotificacionTest } = await import('../api/notificaciones');
+      await enviarNotificacionTest();
+      setMensaje({ texto: 'Notificación de prueba enviada', tipo: 'success' });
+    } catch (err: any) {
+      setMensaje({ texto: 'Error al enviar prueba: ' + (err.response?.data?.error || err.message), tipo: 'error' });
+    }
+    setTimeout(() => setMensaje(null), 4000);
   };
 
   useEffect(() => {
@@ -348,6 +435,36 @@ export default function Dashboard() {
           <div style={{ flex: 1, minWidth: '200px' }}>
             <h1 style={{ margin: 0, fontSize: '2rem' }}>Hola, {usuario?.nombre}</h1>
             <p className="subtitle" style={{ margin: '0.5rem 0 0' }}>Gestiona tus pronósticos y sigue los resultados en vivo.</p>
+            {pushSupported && (
+              <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button 
+                  onClick={handleTogglePush} 
+                  disabled={subscribing}
+                  className={`admin-btn ${pushSubscribed ? 'danger' : 'primary'}`}
+                  style={{ width: 'auto', padding: '0.4rem 1rem', fontSize: '0.8rem', borderRadius: '8px', margin: 0 }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>
+                    {pushSubscribed ? 'notifications_off' : 'notifications_active'}
+                  </span>
+                  {subscribing 
+                    ? 'Procesando...' 
+                    : pushSubscribed 
+                      ? 'Desactivar Notificaciones' 
+                      : 'Activar Alertas de Pronósticos'}
+                </button>
+
+                {pushSubscribed && (
+                  <button 
+                    onClick={handleTestNotification}
+                    className="admin-btn"
+                    style={{ width: 'auto', padding: '0.4rem 1rem', fontSize: '0.8rem', borderRadius: '8px', margin: 0, background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>send</span>
+                    Probar Alerta
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           <div className="puntos-resumen-v2">
             <div className="puntos-total-v2">{statsSummary.total}</div>
@@ -558,4 +675,16 @@ export default function Dashboard() {
       </footer>
     </div>
   );
+}
+
+// Función auxiliar para convertir la clave VAPID base64 a Uint8Array
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
 }
