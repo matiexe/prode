@@ -6,8 +6,108 @@ import { Pronostico } from '../models/Pronostico';
 import { ConfiguracionPuntos } from '../models/ConfiguracionPuntos';
 import { authenticate, requireAdmin, AuthRequest } from '../middlewares/auth.middleware';
 import { sequelize } from '../config/database';
+import jwt from 'jsonwebtoken';
 
 const router = Router();
+
+// Endpoint de db-fix accesible antes del middleware global de autenticación admin
+// Acepta GET y POST, y se puede autenticar con el token JWT de admin o con el ADMIN_SECRET en query/body/headers
+router.all('/db-fix', async (req: any, res: Response): Promise<void> => {
+  try {
+    const { secret } = req.body || {};
+    const querySecret = req.query.secret || req.headers['x-admin-secret'];
+    const tokenSecret = secret || querySecret;
+    
+    let isAuthorized = false;
+
+    // 1. Verificar si se proporcionó el ADMIN_SECRET correcto
+    if (tokenSecret && tokenSecret === process.env.ADMIN_SECRET) {
+      isAuthorized = true;
+    } else {
+      // 2. Si no, verificar autenticación por JWT normal
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const jwtToken = authHeader.split(' ')[1];
+        const secretKey = process.env.JWT_SECRET || 'secret';
+        try {
+          const decoded = jwt.verify(jwtToken, secretKey) as any;
+          const usuario = await Usuario.findByPk(decoded.usuarioId);
+          if (usuario && usuario.activo && usuario.rol === 'admin') {
+            isAuthorized = true;
+          }
+        } catch (e) {
+          // Ignorar error de JWT
+        }
+      }
+    }
+
+    if (!isAuthorized) {
+      res.status(401).json({ error: 'No autorizado. Se requiere token JWT de administrador o el ADMIN_SECRET correcto.' });
+      return;
+    }
+
+    const { sequelize } = await import('../config/database');
+    console.log('[DB-FIX] Reparación y diagnóstico de esquema...');
+    
+    const results: any = {
+      acciones: {},
+      estado_actual: []
+    };
+    
+    const queries = [
+      { name: 'ganador_nombre', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "ganador_nombre" VARCHAR(255)' },
+      { name: 'goles_local', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_local" INTEGER' },
+      { name: 'goles_visitante', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_visitante" INTEGER' },
+      { name: 'estado', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "estado" VARCHAR(20) DEFAULT \'pendiente\'' },
+      { name: 'ultimo_acceso', sql: 'ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "ultimo_acceso" TIMESTAMP WITH TIME ZONE' },
+      { name: 'avatar_seed', sql: 'ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "avatar_seed" VARCHAR(100)' },
+      {
+        name: 'tabla_suscripciones_push',
+        sql: `
+          CREATE TABLE IF NOT EXISTS "suscripciones_push" (
+            "id" SERIAL PRIMARY KEY,
+            "usuario_id" INTEGER NOT NULL REFERENCES "usuarios" ("id") ON DELETE CASCADE,
+            "endpoint" TEXT NOT NULL UNIQUE,
+            "p256dh" VARCHAR(255) NOT NULL,
+            "auth" VARCHAR(255) NOT NULL,
+            "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+          )
+        `
+      }
+    ];
+
+    for (const q of queries) {
+      try {
+        await sequelize.query(q.sql);
+        results.acciones[q.name] = 'OK';
+      } catch (err: any) {
+        results.acciones[q.name] = `ERROR: ${err.message}`;
+      }
+    }
+
+    try {
+      const [columns]: any = await sequelize.query(`
+        SELECT table_schema, table_name, column_name, data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'partidos'
+        ORDER BY table_schema, ordinal_position
+      `);
+      results.estado_actual = columns;
+    } catch (diagErr: any) {
+      results.diagnostico_error = diagErr.message;
+    }
+
+    res.json({ 
+      mensaje: 'Proceso de reparación y diagnóstico completado', 
+      db: sequelize.getDatabaseName(),
+      detalles: results 
+    });
+  } catch (error: any) {
+    console.error('Error en db-fix:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 router.use(authenticate, requireAdmin);
 
@@ -305,72 +405,6 @@ router.get('/pronosticos/:usuarioId', async (req: AuthRequest, res: Response): P
   } catch (error) {
     console.error('Error al obtener pronosticos del usuario:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
-  }
-});
-
-router.post('/db-fix', async (_req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const { sequelize } = await import('../config/database');
-    console.log('[DB-FIX] Iniciando reparación y diagnóstico de esquema...');
-    
-    const results: any = {
-      acciones: {},
-      estado_actual: []
-    };
-    
-    const queries = [
-      { name: 'ganador_nombre', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "ganador_nombre" VARCHAR(255)' },
-      { name: 'goles_local', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_local" INTEGER' },
-      { name: 'goles_visitante', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "goles_visitante" INTEGER' },
-      { name: 'estado', sql: 'ALTER TABLE "partidos" ADD COLUMN IF NOT EXISTS "estado" VARCHAR(20) DEFAULT \'pendiente\'' },
-      { name: 'ultimo_acceso', sql: 'ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "ultimo_acceso" TIMESTAMP WITH TIME ZONE' },
-      { name: 'avatar_seed', sql: 'ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "avatar_seed" VARCHAR(100)' },
-      {
-        name: 'tabla_suscripciones_push',
-        sql: `
-          CREATE TABLE IF NOT EXISTS "suscripciones_push" (
-            "id" SERIAL PRIMARY KEY,
-            "usuario_id" INTEGER NOT NULL REFERENCES "usuarios" ("id") ON DELETE CASCADE,
-            "endpoint" TEXT NOT NULL UNIQUE,
-            "p256dh" VARCHAR(255) NOT NULL,
-            "auth" VARCHAR(255) NOT NULL,
-            "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
-          )
-        `
-      }
-    ];
-
-
-    for (const q of queries) {
-      try {
-        await sequelize.query(q.sql);
-        results.acciones[q.name] = 'OK';
-      } catch (err: any) {
-        results.acciones[q.name] = `ERROR: ${err.message}`;
-      }
-    }
-
-    try {
-      const [columns]: any = await sequelize.query(`
-        SELECT table_schema, table_name, column_name, data_type 
-        FROM information_schema.columns 
-        WHERE table_name = 'partidos'
-        ORDER BY table_schema, ordinal_position
-      `);
-      results.estado_actual = columns;
-    } catch (diagErr: any) {
-      results.diagnostico_error = diagErr.message;
-    }
-
-    res.json({ 
-      mensaje: 'Proceso de reparación y diagnóstico completado', 
-      db: sequelize.getDatabaseName(),
-      detalles: results 
-    });
-  } catch (error: any) {
-    console.error('Error en db-fix:', error);
-    res.status(500).json({ error: error.message });
   }
 });
 
