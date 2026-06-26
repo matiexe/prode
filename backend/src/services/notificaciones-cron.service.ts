@@ -5,12 +5,20 @@ import { Partido } from '../models/Partido';
 import { Pronostico } from '../models/Pronostico';
 import { SuscripcionPush } from '../models/SuscripcionPush';
 
-// Configurar web-push
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:admin@prode.com',
-  process.env.VAPID_PUBLIC_KEY || '',
-  process.env.VAPID_PRIVATE_KEY || ''
-);
+// Configurar web-push de manera segura (evita caídas si no están las variables)
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  try {
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT || 'mailto:admin@prode.com',
+      process.env.VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
+  } catch (error) {
+    console.error('Error al configurar web-push (VAPID):', error);
+  }
+} else {
+  console.warn('VAPID_PUBLIC_KEY o VAPID_PRIVATE_KEY no configurados. Las notificaciones push no funcionarán.');
+}
 
 export async function notificarPronosticosPendientes(): Promise<void> {
   console.log('[CRON-PUSH] Iniciando chequeo de pronósticos pendientes...');

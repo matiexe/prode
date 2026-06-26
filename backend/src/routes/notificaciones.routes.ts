@@ -3,12 +3,20 @@ import { SuscripcionPush } from '../models/SuscripcionPush';
 import { authenticate, AuthRequest } from '../middlewares/auth.middleware';
 import webpush from 'web-push';
 
-// Configurar web-push
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:admin@prode.com',
-  process.env.VAPID_PUBLIC_KEY || '',
-  process.env.VAPID_PRIVATE_KEY || ''
-);
+// Configurar web-push de manera segura (evita caídas si no están las variables)
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  try {
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT || 'mailto:admin@prode.com',
+      process.env.VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
+  } catch (error) {
+    console.error('Error al configurar web-push (VAPID):', error);
+  }
+} else {
+  console.warn('VAPID_PUBLIC_KEY o VAPID_PRIVATE_KEY no configurados. Las notificaciones push no funcionarán.');
+}
 
 const router = Router();
 
