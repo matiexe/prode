@@ -20,14 +20,15 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
 
 const router = Router();
 
-// Endpoint del Cron Job (público pero protegido por ADMIN_SECRET)
-router.post('/cron-pendientes', async (req, res): Promise<void> => {
+// Endpoint del Cron Job (público pero protegido por x-vercel-cron o ADMIN_SECRET)
+router.all('/cron-pendientes', async (req, res): Promise<void> => {
   try {
-    const { secret } = req.body;
+    const isVercelCron = req.headers['x-vercel-cron'] === '1';
+    const { secret } = req.body || {};
     const token = secret || req.query.secret || req.headers['x-admin-secret'];
     
-    if (!token || token !== process.env.ADMIN_SECRET) {
-      res.status(401).json({ error: 'No autorizado. Secret incorrecto.' });
+    if (!isVercelCron && (!token || token !== process.env.ADMIN_SECRET)) {
+      res.status(401).json({ error: 'No autorizado. Se requiere firma de Vercel Cron o Secret correcto.' });
       return;
     }
 
