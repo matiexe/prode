@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import AdminPanel from './pages/AdminPanel';
 import RankingPage from './pages/RankingPage';
 import GruposPage from './pages/GruposPage';
+import PWAInstallBanner from './components/PWAInstallBanner';
 
 function Navbar({ onOpenMenu }: { onOpenMenu: () => void }) {
   const { usuario } = useAuth();
@@ -148,6 +149,7 @@ function AppContent() {
           <Route path="*" element={<RankingPage />} />
         </Routes>
       </main>
+      <PWAInstallBanner />
     </>
   );
 }
