@@ -111,6 +111,82 @@ router.all('/db-fix', async (req: any, res: Response): Promise<void> => {
 
 router.use(authenticate, requireAdmin);
 
+router.post('/test-push-global', async (_req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { SuscripcionPush } = await import('../models/SuscripcionPush');
+    const { Usuario } = await import('../models/Usuario');
+    const webpush = (await import('web-push')).default;
+
+    // Configurar web-push de manera segura
+    if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+      try {
+        webpush.setVapidDetails(
+          process.env.VAPID_SUBJECT || 'mailto:admin@prode.com',
+          process.env.VAPID_PUBLIC_KEY,
+          process.env.VAPID_PRIVATE_KEY
+        );
+      } catch (vapidErr) {
+        // Ignorar si ya está configurado
+      }
+    } else {
+      res.status(400).json({ error: 'Las claves VAPID no están configuradas en el servidor.' });
+      return;
+    }
+
+    // Buscar todas las suscripciones push de usuarios activos
+    const suscripciones = await SuscripcionPush.findAll({
+      include: [{
+        model: Usuario,
+        as: 'usuario',
+        where: { activo: true }
+      }]
+    });
+
+    if (suscripciones.length === 0) {
+      res.status(404).json({ error: 'No hay ninguna suscripción push activa registrada en el sistema.' });
+      return;
+    }
+
+    let enviados = 0;
+    let fallidos = 0;
+
+    for (const sub of suscripciones) {
+      try {
+        const pushSubscription = {
+          endpoint: sub.endpoint,
+          keys: {
+            p256dh: sub.p256dh,
+            auth: sub.auth,
+          },
+        };
+
+        const payload = JSON.stringify({
+          title: '🏆 Alerta Global Prode 2026',
+          body: 'Esta es una notificación de prueba global enviada por el administrador del sistema.',
+          icon: '/assets/icon-192x192.png',
+          data: { url: '/dashboard' },
+        });
+
+        await webpush.sendNotification(pushSubscription, payload);
+        enviados++;
+      } catch (err: any) {
+        if (err.statusCode === 410 || err.statusCode === 404) {
+          console.log(`[ADMIN-PUSH] Eliminando suscripción push inválida/expirada ID: ${sub.id}`);
+          await sub.destroy();
+        } else {
+          console.error(`[ADMIN-PUSH] Error al enviar a suscripción ID ${sub.id}:`, err);
+        }
+        fallidos++;
+      }
+    }
+
+    res.json({ mensaje: `Notificación de prueba global enviada a ${enviados} dispositivo(s). Errores/limpiezas: ${fallidos}.` });
+  } catch (error: any) {
+    console.error('Error al enviar test de notificaciones global:', error);
+    res.status(500).json({ error: error.message || 'Error interno del servidor' });
+  }
+});
+
 router.get('/stats', async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const totalUsuarios = await Usuario.count();

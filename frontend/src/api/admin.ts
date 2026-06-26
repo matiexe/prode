@@ -82,3 +82,8 @@ export const obtenerShareData = async (partidoIds?: number[]) => {
   const { data } = await client.post('/admin/stats/share', { partidoIds });
   return data;
 };
+
+export const enviarTestPushGlobal = async (): Promise<{ mensaje: string }> => {
+  const { data } = await client.post('/admin/test-push-global');
+  return data;
+};

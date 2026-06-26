@@ -8,7 +8,7 @@ import ShareStatsImage from '../components/ShareStatsImage';
 import { listarUsuarios, crearUsuario, desactivarUsuario, actualizarUsuario } from '../api/usuarios';
 import { listarPartidos, generarFixture, eliminarFixture, cargarResultado, cerrarFase } from '../api/partidos';
 import { obtenerConfiguracion, actualizarConfiguracion } from '../api/configuracion';
-import { obtenerAdminStats, obtenerAdminInsights, obtenerPronosticosUsuario, obtenerShareData } from '../api/admin';
+import { obtenerAdminStats, obtenerAdminInsights, obtenerPronosticosUsuario, obtenerShareData, enviarTestPushGlobal } from '../api/admin';
 import type { AdminStats, AdminInsights } from '../api/admin';
 import { getFlagUrl } from '../utils/flags';
 import UserAvatar from '../components/UserAvatar';
@@ -54,6 +54,7 @@ export default function AdminPanel() {
   const [generando, setGenerando] = useState(false);
   const [eliminando, setEliminando] = useState(false);
   const [cerrandoFase, setCerrandoFase] = useState(false);
+  const [enviandoTestPush, setEnviandoTestPush] = useState(false);
 
   useEffect(() => {
     if (!usuario) return;
@@ -223,6 +224,20 @@ export default function AdminPanel() {
       setMensaje('Configuracion actualizada');
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleEnviarTestGlobal = async () => {
+    if (!window.confirm('¿Enviar una notificación de prueba a TODOS los usuarios registrados con alertas activas?')) return;
+    setEnviandoTestPush(true);
+    setMensaje('');
+    try {
+      const res = await enviarTestPushGlobal();
+      setMensaje(res.mensaje);
+    } catch (err: any) {
+      setMensaje(err.response?.data?.error || 'Error al enviar notificación de prueba global');
+    } finally {
+      setEnviandoTestPush(false);
     }
   };
 
@@ -672,6 +687,10 @@ export default function AdminPanel() {
                     <button className="admin-btn secondary" onClick={() => setTab('usuarios')}>
                       <span className="material-symbols-outlined">manage_accounts</span>
                       Gestionar Usuarios
+                    </button>
+                    <button className="admin-btn secondary" onClick={handleEnviarTestGlobal} disabled={enviandoTestPush} style={{ border: '1px solid rgba(0, 229, 255, 0.25)' }}>
+                      <span className="material-symbols-outlined" style={{ color: '#00e5ff' }}>send</span>
+                      {enviandoTestPush ? 'Enviando...' : 'Test Alerta Global'}
                     </button>
                   </div>
                 </div>
