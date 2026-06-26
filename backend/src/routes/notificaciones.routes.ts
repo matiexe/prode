@@ -23,12 +23,29 @@ const router = Router();
 // Endpoint del Cron Job (público pero protegido por x-vercel-cron o ADMIN_SECRET)
 router.all('/cron-pendientes', async (req, res): Promise<void> => {
   try {
-    const isVercelCron = req.headers['x-vercel-cron'] === '1';
+    const headers = req.headers;
+    const isVercelCron = headers['x-vercel-cron'] === '1';
+    const userAgent = headers['user-agent'];
+    const authHeader = headers['authorization'];
+
+    console.log('[CRON-DEBUG] Request received.');
+    console.log('[CRON-DEBUG] headers:', JSON.stringify(headers));
+    console.log('[CRON-DEBUG] isVercelCron:', isVercelCron, 'userAgent:', userAgent, 'authHeader:', authHeader ? 'Presente' : 'Ausente');
+
     const { secret } = req.body || {};
     const token = secret || req.query.secret || req.headers['x-admin-secret'];
     
     if (!isVercelCron && (!token || token !== process.env.ADMIN_SECRET)) {
-      res.status(401).json({ error: 'No autorizado. Se requiere firma de Vercel Cron o Secret correcto.' });
+      console.warn('[CRON-DEBUG] Acceso denegado. No es Vercel Cron y no se proveyó ADMIN_SECRET válido.');
+      res.status(401).json({ 
+        error: 'No autorizado. Se requiere firma de Vercel Cron o Secret correcto.',
+        debug: {
+          isVercelCron,
+          hasToken: !!token,
+          userAgent,
+          xVercelCron: headers['x-vercel-cron']
+        }
+      });
       return;
     }
 
