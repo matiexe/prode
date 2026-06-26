@@ -3,8 +3,8 @@ import { precacheAndRoute } from 'workbox-precaching';
 
 const swSelf = (self as unknown) as ServiceWorkerGlobalScope & typeof globalThis;
 
-// Precache de recursos estáticos compilados por Vite
-precacheAndRoute(swSelf.__WB_MANIFEST);
+// @ts-ignore
+precacheAndRoute(self.__WB_MANIFEST);
 
 // Escuchar evento push enviado desde el backend
 swSelf.addEventListener('push', (event) => {

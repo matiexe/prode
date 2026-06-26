@@ -463,6 +463,13 @@ export default function Dashboard() {
                     Probar Alerta
                   </button>
                 )}
+
+                {pushPermission === 'denied' && (
+                  <p style={{ margin: '0.5rem 0 0', fontSize: '0.7rem', color: 'rgba(255, 73, 73, 0.9)', width: '100%', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '0.9rem' }}>warning</span>
+                    Notificaciones bloqueadas por el navegador. Habilítalas para recibir alertas de pronósticos.
+                  </p>
+                )}
               </div>
             )}
           </div>
