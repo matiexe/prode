@@ -24,7 +24,7 @@ const router = Router();
 router.all('/cron-pendientes', async (req, res): Promise<void> => {
   try {
     const headers = req.headers;
-    const isVercelCron = headers['x-vercel-cron'] === '1';
+    const isVercelCron = headers['x-vercel-cron'] === '1' || !!headers['x-vercel-cron-schedule'];
     const userAgent = headers['user-agent'];
     const authHeader = headers['authorization'];
 
