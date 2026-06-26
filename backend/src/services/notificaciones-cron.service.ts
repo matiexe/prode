@@ -43,11 +43,10 @@ export async function notificarPronosticosPendientes(): Promise<void> {
 
   console.log(`[CRON-PUSH] Se encontraron ${proximosPartidos.length} partidos próximos.`);
 
-  // 2. Obtener todos los usuarios normales activos
+  // 2. Obtener todos los usuarios activos (tanto users como admins que participan en el prode)
   const usuarios = await Usuario.findAll({
     where: {
       activo: true,
-      rol: 'user',
     },
   });
 
