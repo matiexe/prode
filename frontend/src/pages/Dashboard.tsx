@@ -54,79 +54,124 @@ export default function Dashboard() {
 
   // Cargar estado de notificaciones push al iniciar
   useEffect(() => {
+    console.log('[PUSH] Inicializando verificador de soporte de Service Worker y Push...');
     if ('serviceWorker' in navigator && 'PushManager' in window) {
+      console.log('[PUSH] Service Worker y PushManager están soportados.');
       setPushSupported(true);
+      console.log('[PUSH] Permiso actual de notificaciones:', Notification.permission);
       setPushPermission(Notification.permission);
       
+      console.log('[PUSH] Esperando a que el Service Worker esté listo...');
       navigator.serviceWorker.ready.then((reg) => {
+        console.log('[PUSH] Service Worker listo. Buscando suscripción push existente...');
         reg.pushManager.getSubscription().then((sub) => {
           if (sub) {
+            console.log('[PUSH] Suscripción push existente encontrada en el navegador:', sub.endpoint);
             setPushSubscribed(true);
             setActiveSubscription(sub);
+          } else {
+            console.log('[PUSH] No se encontró ninguna suscripción push existente en este navegador.');
           }
+        }).catch((err) => {
+          console.error('[PUSH] Error al obtener suscripción push existente:', err);
         });
+      }).catch((err) => {
+        console.error('[PUSH] Error al esperar el Service Worker listo:', err);
       });
+    } else {
+      console.warn('[PUSH] Service Worker o PushManager NO están soportados en este navegador/dispositivo.');
     }
   }, []);
 
   const handleTogglePush = async () => {
-    if (!pushSupported) return;
+    console.log('[PUSH] handleTogglePush iniciado. pushSupported:', pushSupported, 'pushSubscribed:', pushSubscribed);
+    if (!pushSupported) {
+      console.warn('[PUSH] Notificaciones push no soportadas en este navegador.');
+      return;
+    }
     setSubscribing(true);
 
     try {
+      console.log('[PUSH] Esperando que el Service Worker esté listo...');
       const reg = await navigator.serviceWorker.ready;
+      console.log('[PUSH] Service Worker listo. Estado de la suscripción:', activeSubscription ? 'Existe' : 'No existe');
       
       if (pushSubscribed && activeSubscription) {
-        // Desuscribirse en el navegador
+        console.log('[PUSH] Iniciando proceso de desuscripción...');
+        console.log('[PUSH] Desuscribiendo en el navegador para el endpoint:', activeSubscription.endpoint);
         await activeSubscription.unsubscribe();
+        
+        console.log('[PUSH] Importando api/notificaciones para desuscribir...');
         const { desuscribirPush } = await import('../api/notificaciones');
+        
+        console.log('[PUSH] Enviando desuscripción al backend...');
         await desuscribirPush(activeSubscription.endpoint);
+        
         setPushSubscribed(false);
         setActiveSubscription(null);
         setMensaje({ texto: 'Notificaciones desactivadas', tipo: 'success' });
+        console.log('[PUSH] Desuscripción completada con éxito.');
       } else {
-        // Solicitar permisos push
+        console.log('[PUSH] Iniciando proceso de suscripción...');
+        console.log('[PUSH] Solicitando permiso de notificaciones...');
         const permission = await Notification.requestPermission();
+        console.log('[PUSH] Permiso otorgado por el usuario:', permission);
         setPushPermission(permission);
+        
         if (permission !== 'granted') {
+          console.warn('[PUSH] Permiso denegado por el usuario.');
           setMensaje({ texto: 'Permiso denegado para recibir notificaciones', tipo: 'error' });
           setSubscribing(false);
           return;
         }
 
-        // Obtener la clave pública VAPID
+        console.log('[PUSH] Importando api/notificaciones para suscribir...');
         const { getVapidPublicKey, suscribirPush } = await import('../api/notificaciones');
-        const vapidPublicKey = await getVapidPublicKey();
         
-        // Convertir la clave y suscribirse
+        console.log('[PUSH] Obteniendo clave pública VAPID del backend...');
+        const vapidPublicKey = await getVapidPublicKey();
+        console.log('[PUSH] Clave pública VAPID obtenida:', vapidPublicKey);
+        
+        console.log('[PUSH] Convirtiendo clave VAPID a Uint8Array...');
         const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
+        
+        console.log('[PUSH] Suscribiendo al PushManager del navegador...');
         const sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: convertedKey,
         });
+        console.log('[PUSH] Suscripción obtenida del navegador:', sub);
 
-        // Guardar la suscripción en el backend
+        console.log('[PUSH] Enviando suscripción al backend...');
         await suscribirPush(sub);
+        console.log('[PUSH] Suscripción registrada con éxito en el backend.');
 
         setPushSubscribed(true);
         setActiveSubscription(sub);
         setMensaje({ texto: '¡Notificaciones activadas con éxito!', tipo: 'success' });
       }
     } catch (err: any) {
-      console.error('Error al configurar notificaciones push:', err);
+      console.error('[PUSH] Error crítico durante la configuración de notificaciones push:', err);
       setMensaje({ texto: 'Error al configurar notificaciones: ' + (err.message || ''), tipo: 'error' });
     } finally {
+      console.log('[PUSH] Finalizando handleTogglePush, seteando subscribing a false.');
       setSubscribing(false);
       setTimeout(() => setMensaje(null), 4000);
     }
   };
 
   const handleTestNotification = async () => {
+    console.log('[PUSH] handleTestNotification iniciado.');
     try {
+      console.log('[PUSH] Importando api/notificaciones para prueba...');
       const { enviarNotificacionTest } = await import('../api/notificaciones');
+      
+      console.log('[PUSH] Solicitando envío de notificación de prueba al backend...');
       await enviarNotificacionTest();
       setMensaje({ texto: 'Notificación de prueba enviada', tipo: 'success' });
+      console.log('[PUSH] Petición de prueba finalizada correctamente.');
     } catch (err: any) {
+      console.error('[PUSH] Error al enviar notificación de prueba:', err);
       setMensaje({ texto: 'Error al enviar prueba: ' + (err.response?.data?.error || err.message), tipo: 'error' });
     }
     setTimeout(() => setMensaje(null), 4000);
