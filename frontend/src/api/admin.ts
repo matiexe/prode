@@ -84,7 +84,7 @@ export const obtenerShareData = async (partidoIds?: number[]) => {
   return data;
 };
 
-export const enviarTestPushGlobal = async (): Promise<{ mensaje: string }> => {
-  const { data } = await client.post('/admin/test-push-global');
+export const enviarTestPushGlobal = async (titulo?: string, mensaje?: string): Promise<{ mensaje: string }> => {
+  const { data } = await client.post('/admin/test-push-global', { titulo, mensaje });
   return data;
 };

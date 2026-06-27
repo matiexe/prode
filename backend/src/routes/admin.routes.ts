@@ -170,7 +170,7 @@ router.all('/db-fix', async (req: any, res: Response): Promise<void> => {
 
 router.use(authenticate, requireAdmin);
 
-router.post('/test-push-global', async (_req: AuthRequest, res: Response): Promise<void> => {
+router.post('/test-push-global', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { SuscripcionPush } = await import('../models/SuscripcionPush');
     const { Usuario } = await import('../models/Usuario');
@@ -206,6 +206,10 @@ router.post('/test-push-global', async (_req: AuthRequest, res: Response): Promi
       return;
     }
 
+    const { titulo, mensaje } = req.body || {};
+    const finalTitle = titulo || '🏆 Alerta Global Prode 2026';
+    const finalBody = mensaje || 'Esta es una notificación de prueba global enviada por el administrador del sistema.';
+
     let enviados = 0;
     let fallidos = 0;
 
@@ -220,8 +224,8 @@ router.post('/test-push-global', async (_req: AuthRequest, res: Response): Promi
         };
 
         const payload = JSON.stringify({
-          title: '🏆 Alerta Global Prode 2026',
-          body: 'Esta es una notificación de prueba global enviada por el administrador del sistema.',
+          title: finalTitle,
+          body: finalBody,
           icon: '/assets/icon-192x192.png',
           data: { url: '/dashboard' },
         });

@@ -55,6 +55,9 @@ export default function AdminPanel() {
   const [eliminando, setEliminando] = useState(false);
   const [cerrandoFase, setCerrandoFase] = useState(false);
   const [enviandoTestPush, setEnviandoTestPush] = useState(false);
+  const [mostrarModalPush, setMostrarModalPush] = useState(false);
+  const [pushTitulo, setPushTitulo] = useState('🏆 Alerta Global Prode 2026');
+  const [pushMensaje, setPushMensaje] = useState('');
 
   useEffect(() => {
     if (!usuario) return;
@@ -229,17 +232,15 @@ export default function AdminPanel() {
 
   const handleEnviarTestGlobal = async () => {
     console.log('[ADMIN-PUSH] handleEnviarTestGlobal iniciado.');
-    if (!window.confirm('¿Enviar una notificación de prueba a TODOS los usuarios registrados con alertas activas?')) {
-      console.log('[ADMIN-PUSH] Envío global cancelado por el usuario.');
-      return;
-    }
     setEnviandoTestPush(true);
     setMensaje('');
     try {
       console.log('[ADMIN-PUSH] Enviando solicitud POST a /api/admin/test-push-global...');
-      const res = await enviarTestPushGlobal();
+      const res = await enviarTestPushGlobal(pushTitulo, pushMensaje);
       console.log('[ADMIN-PUSH] Respuesta exitosa recibida del servidor:', res);
       setMensaje(res.mensaje);
+      setMostrarModalPush(false);
+      setPushMensaje('');
     } catch (err: any) {
       console.error('[ADMIN-PUSH] Error capturado al enviar notificación global:', err);
       const errMsg = err.response?.data?.error || err.message || 'Error al enviar notificación de prueba global';
@@ -708,9 +709,9 @@ export default function AdminPanel() {
                       <span className="material-symbols-outlined">manage_accounts</span>
                       Gestionar Usuarios
                     </button>
-                    <button className="admin-btn secondary" onClick={handleEnviarTestGlobal} disabled={enviandoTestPush} style={{ border: '1px solid rgba(0, 229, 255, 0.25)' }}>
-                      <span className="material-symbols-outlined" style={{ color: '#00e5ff' }}>send</span>
-                      {enviandoTestPush ? 'Enviando...' : 'Test Alerta Global'}
+                    <button className="admin-btn secondary" onClick={() => setMostrarModalPush(true)} disabled={enviandoTestPush} style={{ border: '1px solid rgba(0, 229, 255, 0.25)' }}>
+                      <span className="material-symbols-outlined" style={{ color: '#00e5ff' }}>campaign</span>
+                      Enviar Alerta Global
                     </button>
                   </div>
                 </div>
@@ -1106,6 +1107,73 @@ export default function AdminPanel() {
             data={shareDataVisual} 
             contexto={shareContextoVisual}
           />
+        </div>
+      )}
+
+      {mostrarModalPush && (
+        <div className="modal-overlay" onClick={() => setMostrarModalPush(false)}>
+          <div className="modal-content glass-card animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ border: '1px solid var(--primary)', boxShadow: '0 0 40px rgba(177, 198, 249, 0.2)', maxWidth: '480px', width: '90%' }}>
+            <h2 style={{ fontFamily: 'Anybody', textTransform: 'uppercase', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>campaign</span>
+              Alerta Push Global
+            </h2>
+            <p className="subtitle" style={{ fontSize: '0.8rem', opacity: 0.7, marginBottom: '1.5rem' }}>
+              Enviar una notificación push personalizada a todos los usuarios con alertas activas.
+            </p>
+
+            <form onSubmit={(e) => { e.preventDefault(); handleEnviarTestGlobal(); }}>
+              <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Título de la Alerta</label>
+                <input
+                  type="text"
+                  value={pushTitulo}
+                  onChange={(e) => setPushTitulo(e.target.value)}
+                  placeholder="Ej: 🏆 Alerta Global Prode 2026"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    background: 'var(--surface-container-highest)',
+                    color: 'var(--text)',
+                    border: '1px solid var(--outline-variant)',
+                    fontWeight: 600
+                  }}
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Mensaje / Cuerpo</label>
+                <textarea
+                  value={pushMensaje}
+                  onChange={(e) => setPushMensaje(e.target.value)}
+                  placeholder="Escribe tu mensaje personalizado aquí..."
+                  required
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    background: 'var(--surface-container-highest)',
+                    color: 'var(--text)',
+                    border: '1px solid var(--outline-variant)',
+                    fontFamily: 'inherit',
+                    resize: 'none',
+                    fontWeight: 500
+                  }}
+                />
+              </div>
+
+              <div className="form-actions" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <button type="submit" className="admin-btn primary" disabled={enviandoTestPush} style={{ width: '100%', justifyContent: 'center', padding: '1rem' }}>
+                  {enviandoTestPush ? 'Enviando...' : 'Enviar Alerta a Todos'}
+                </button>
+                <button type="button" className="admin-btn secondary" onClick={() => { setMostrarModalPush(false); setPushMensaje(''); }} style={{ width: '100%', justifyContent: 'center' }}>
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
