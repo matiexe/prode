@@ -98,6 +98,65 @@ router.all('/db-fix', async (req: any, res: Response): Promise<void> => {
       results.diagnostico_error = diagErr.message;
     }
 
+    // Verificar si faltan los partidos de eliminatorias en la base de datos
+    const { Partido } = await import('../models/Partido');
+    const countEliminatorias = await Partido.count({
+      where: {
+        fase: {
+          [Op.in]: ['16vos', '8vos', 'cuartos', 'semis', '3er_puesto', 'final']
+        }
+      }
+    });
+
+    if (countEliminatorias === 0) {
+      console.log('[DB-FIX] Generando partidos de eliminatorias faltantes...');
+      
+      const generarFechas = (inicio: string, fin: string, cantidad: number): string[] => {
+        const start = new Date(inicio);
+        const end = new Date(fin);
+        const diffMs = end.getTime() - start.getTime();
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+        const fechas: string[] = [];
+        for (let i = 0; i < cantidad; i++) {
+          const d = new Date(start);
+          const offset = diffDays === 0 ? 0 : (i * diffDays) / Math.max(cantidad - 1, 1);
+          d.setDate(d.getDate() + offset);
+          d.setUTCHours(i % 2 === 0 ? 17 : 21, 0, 0, 0);
+          fechas.push(d.toISOString());
+        }
+        return fechas;
+      };
+
+      const eliminatorias: Array<{ fase: '16vos' | '8vos' | 'cuartos' | 'semis' | '3er_puesto' | 'final'; partidos: number; fechas: string[] }> = [
+        { fase: '16vos', partidos: 16, fechas: generarFechas('2026-06-28', '2026-07-03', 16) },
+        { fase: '8vos', partidos: 8, fechas: generarFechas('2026-07-04', '2026-07-07', 8) },
+        { fase: 'cuartos', partidos: 4, fechas: generarFechas('2026-07-09', '2026-07-11', 4) },
+        { fase: 'semis', partidos: 2, fechas: ['2026-07-14T19:00:00Z', '2026-07-15T19:00:00Z'] },
+        { fase: '3er_puesto', partidos: 1, fechas: ['2026-07-18T17:00:00Z'] },
+        { fase: 'final', partidos: 1, fechas: ['2026-07-19T18:00:00Z'] },
+      ];
+
+      const partidosToCreate: any[] = [];
+      for (const { fase, partidos: cantidad, fechas } of eliminatorias) {
+        for (let i = 0; i < cantidad; i++) {
+          const fecha = fechas[i] || fechas[fechas.length - 1];
+          partidosToCreate.push({
+            fase,
+            grupo: null,
+            equipoLocal: 'Por definir',
+            equipoVisitante: 'Por definir',
+            fechaHora: new Date(fecha),
+            estado: 'pendiente'
+          });
+        }
+      }
+      
+      await Partido.bulkCreate(partidosToCreate);
+      results.acciones['generacion_eliminatorias'] = `Creados ${partidosToCreate.length} partidos de eliminatorias (16vos, 8vos, etc.) faltantes.`;
+    } else {
+      results.acciones['generacion_eliminatorias'] = `Los partidos de eliminatorias ya existen en la base de datos (${countEliminatorias} partidos encontrados).`;
+    }
+
     res.json({ 
       mensaje: 'Proceso de reparación y diagnóstico completado', 
       db: sequelize.getDatabaseName(),
