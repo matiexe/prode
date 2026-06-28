@@ -45,10 +45,6 @@
     {
       "path": "/api/notificaciones/cron-pendientes",
       "schedule": "0 12 * * *"
-    },
-    {
-      "path": "/api/partidos/cron-resultados",
-      "schedule": "*/5 * * * *"
     }
   ]
 }
