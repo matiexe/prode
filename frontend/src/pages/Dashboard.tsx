@@ -361,7 +361,8 @@ export default function Dashboard() {
     return Object.values(tabla).sort((a, b) => {
       if (b.pts !== a.pts) return b.pts - a.pts;
       if (b.dg !== a.dg) return b.dg - a.dg;
-      return b.gf - a.gf;
+      if (b.gf !== a.gf) return b.gf - a.gf;
+      return a.equipo.localeCompare(b.equipo);
     });
   }, [partidos, pronosticos, grupo, fase, version]);
 

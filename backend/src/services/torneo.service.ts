@@ -68,7 +68,8 @@ export async function calcularTablaGrupo(fase: string, grupo: string): Promise<E
   return Object.values(tabla).sort((a, b) => {
     if (b.pts !== a.pts) return b.pts - a.pts;
     if (b.dg !== a.dg) return b.dg - a.dg;
-    return b.gf - a.gf;
+    if (b.gf !== a.gf) return b.gf - a.gf;
+    return a.equipo.localeCompare(b.equipo);
   });
 }
 
@@ -93,7 +94,8 @@ export async function obtenerClasificados16vos(): Promise<{
     .sort((a, b) => {
       if (b.pts !== a.pts) return b.pts - a.pts;
       if (b.dg !== a.dg) return b.dg - a.dg;
-      return b.gf - a.gf;
+      if (b.gf !== a.gf) return b.gf - a.gf;
+      return a.equipo.localeCompare(b.equipo);
     })
     .slice(0, 8)
     .map(t => t.equipo);
