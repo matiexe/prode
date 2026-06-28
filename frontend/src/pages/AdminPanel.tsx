@@ -928,6 +928,12 @@ export default function AdminPanel() {
               {(() => {
                 let filtrados = partidos.filter((p) => p.estado !== 'finalizado');
                 
+                if (faseFiltro !== 'grupos') {
+                  filtrados = [...filtrados].sort((a, b) => a.id - b.id);
+                } else {
+                  filtrados = [...filtrados].sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime());
+                }
+                
                 if (faseFiltro === 'grupos' && jornadaFiltro) {
                   // Agrupar por letra de grupo para inferir la jornada cronológicamente
                   const partidosConJornada = filtrados.reduce((acc, p) => {

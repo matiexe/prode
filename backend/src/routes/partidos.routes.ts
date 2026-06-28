@@ -54,24 +54,68 @@ partidosAdminRouter.post('/generar', async (_req: AuthRequest, res: Response): P
     }
 
     // 2. Preparar partidos de eliminatorias
-    const eliminatorias: Array<{ fase: '16vos' | '8vos' | 'cuartos' | 'semis' | '3er_puesto' | 'final'; partidos: number; fechas: string[] }> = [
-      { fase: '16vos', partidos: 16, fechas: generarFechas('2026-06-28', '2026-07-03', 16) },
-      { fase: '8vos', partidos: 8, fechas: generarFechas('2026-07-04', '2026-07-07', 8) },
-      { fase: 'cuartos', partidos: 4, fechas: generarFechas('2026-07-09', '2026-07-11', 4) },
-      { fase: 'semis', partidos: 2, fechas: ['2026-07-14T19:00:00Z', '2026-07-15T19:00:00Z'] },
-      { fase: '3er_puesto', partidos: 1, fechas: ['2026-07-18T17:00:00Z'] },
-      { fase: 'final', partidos: 1, fechas: ['2026-07-19T18:00:00Z'] },
+    const fechas16vos = [
+      '2026-06-28T19:00:00Z', // P73
+      '2026-06-29T17:00:00Z', // P74
+      '2026-06-29T19:00:00Z', // P75
+      '2026-06-29T21:00:00Z', // P76
+      '2026-06-30T17:00:00Z', // P77
+      '2026-06-30T19:00:00Z', // P78
+      '2026-06-30T21:00:00Z', // P79
+      '2026-07-01T17:00:00Z', // P80
+      '2026-07-01T19:00:00Z', // P81
+      '2026-07-01T21:00:00Z', // P82
+      '2026-07-02T17:00:00Z', // P83
+      '2026-07-02T19:00:00Z', // P84
+      '2026-07-02T21:00:00Z', // P85
+      '2026-07-03T17:00:00Z', // P86
+      '2026-07-03T19:00:00Z', // P87
+      '2026-07-03T21:00:00Z', // P88
+    ];
+    const fechas8vos = [
+      '2026-07-04T17:00:00Z', // P89
+      '2026-07-04T21:00:00Z', // P90
+      '2026-07-05T17:00:00Z', // P91
+      '2026-07-05T21:00:00Z', // P92
+      '2026-07-06T17:00:00Z', // P93
+      '2026-07-06T21:00:00Z', // P94
+      '2026-07-07T17:00:00Z', // P95
+      '2026-07-07T21:00:00Z', // P96
+    ];
+    const fechasCuartos = [
+      '2026-07-09T19:00:00Z', // P97
+      '2026-07-10T19:00:00Z', // P98
+      '2026-07-11T17:00:00Z', // P99
+      '2026-07-11T21:00:00Z', // P100
+    ];
+    const fechasSemis = [
+      '2026-07-14T19:00:00Z', // P101
+      '2026-07-15T19:00:00Z', // P102
+    ];
+    const fechas3erPuesto = [
+      '2026-07-18T17:00:00Z', // P103
+    ];
+    const fechasFinal = [
+      '2026-07-19T18:00:00Z', // P104
     ];
 
-    for (const { fase, partidos: cantidad, fechas } of eliminatorias) {
-      for (let i = 0; i < cantidad; i++) {
-        const fecha = fechas[i] || fechas[fechas.length - 1];
+    const eliminatorias: Array<{ fase: '16vos' | '8vos' | 'cuartos' | 'semis' | '3er_puesto' | 'final'; fechas: string[] }> = [
+      { fase: '16vos', fechas: fechas16vos },
+      { fase: '8vos', fechas: fechas8vos },
+      { fase: 'cuartos', fechas: fechasCuartos },
+      { fase: 'semis', fechas: fechasSemis },
+      { fase: '3er_puesto', fechas: fechas3erPuesto },
+      { fase: 'final', fechas: fechasFinal },
+    ];
+
+    for (const { fase, fechas } of eliminatorias) {
+      for (let i = 0; i < fechas.length; i++) {
         partidosToCreate.push({
           fase,
           grupo: null,
           equipoLocal: 'Por definir',
           equipoVisitante: 'Por definir',
-          fechaHora: new Date(fecha),
+          fechaHora: new Date(fechas[i]),
           estado: 'pendiente'
         });
       }

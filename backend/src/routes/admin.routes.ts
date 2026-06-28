@@ -108,44 +108,71 @@ router.all('/db-fix', async (req: any, res: Response): Promise<void> => {
       }
     });
 
+    const fechas16vos = [
+      '2026-06-28T19:00:00Z', // P73
+      '2026-06-29T17:00:00Z', // P74
+      '2026-06-29T19:00:00Z', // P75
+      '2026-06-29T21:00:00Z', // P76
+      '2026-06-30T17:00:00Z', // P77
+      '2026-06-30T19:00:00Z', // P78
+      '2026-06-30T21:00:00Z', // P79
+      '2026-07-01T17:00:00Z', // P80
+      '2026-07-01T19:00:00Z', // P81
+      '2026-07-01T21:00:00Z', // P82
+      '2026-07-02T17:00:00Z', // P83
+      '2026-07-02T19:00:00Z', // P84
+      '2026-07-02T21:00:00Z', // P85
+      '2026-07-03T17:00:00Z', // P86
+      '2026-07-03T19:00:00Z', // P87
+      '2026-07-03T21:00:00Z', // P88
+    ];
+    const fechas8vos = [
+      '2026-07-04T17:00:00Z', // P89
+      '2026-07-04T21:00:00Z', // P90
+      '2026-07-05T17:00:00Z', // P91
+      '2026-07-05T21:00:00Z', // P92
+      '2026-07-06T17:00:00Z', // P93
+      '2026-07-06T21:00:00Z', // P94
+      '2026-07-07T17:00:00Z', // P95
+      '2026-07-07T21:00:00Z', // P96
+    ];
+    const fechasCuartos = [
+      '2026-07-09T19:00:00Z', // P97
+      '2026-07-10T19:00:00Z', // P98
+      '2026-07-11T17:00:00Z', // P99
+      '2026-07-11T21:00:00Z', // P100
+    ];
+    const fechasSemis = [
+      '2026-07-14T19:00:00Z', // P101
+      '2026-07-15T19:00:00Z', // P102
+    ];
+    const fechas3erPuesto = [
+      '2026-07-18T17:00:00Z', // P103
+    ];
+    const fechasFinal = [
+      '2026-07-19T18:00:00Z', // P104
+    ];
+
+    const fasesEliminatorias: Array<{ fase: '16vos' | '8vos' | 'cuartos' | 'semis' | '3er_puesto' | 'final'; fechas: string[] }> = [
+      { fase: '16vos', fechas: fechas16vos },
+      { fase: '8vos', fechas: fechas8vos },
+      { fase: 'cuartos', fechas: fechasCuartos },
+      { fase: 'semis', fechas: fechasSemis },
+      { fase: '3er_puesto', fechas: fechas3erPuesto },
+      { fase: 'final', fechas: fechasFinal },
+    ];
+
     if (countEliminatorias === 0) {
       console.log('[DB-FIX] Generando partidos de eliminatorias faltantes...');
-      
-      const generarFechas = (inicio: string, fin: string, cantidad: number): string[] => {
-        const start = new Date(inicio);
-        const end = new Date(fin);
-        const diffMs = end.getTime() - start.getTime();
-        const diffDays = diffMs / (1000 * 60 * 60 * 24);
-        const fechas: string[] = [];
-        for (let i = 0; i < cantidad; i++) {
-          const d = new Date(start);
-          const offset = diffDays === 0 ? 0 : (i * diffDays) / Math.max(cantidad - 1, 1);
-          d.setDate(d.getDate() + offset);
-          d.setUTCHours(i % 2 === 0 ? 17 : 21, 0, 0, 0);
-          fechas.push(d.toISOString());
-        }
-        return fechas;
-      };
-
-      const eliminatorias: Array<{ fase: '16vos' | '8vos' | 'cuartos' | 'semis' | '3er_puesto' | 'final'; partidos: number; fechas: string[] }> = [
-        { fase: '16vos', partidos: 16, fechas: generarFechas('2026-06-28', '2026-07-03', 16) },
-        { fase: '8vos', partidos: 8, fechas: generarFechas('2026-07-04', '2026-07-07', 8) },
-        { fase: 'cuartos', partidos: 4, fechas: generarFechas('2026-07-09', '2026-07-11', 4) },
-        { fase: 'semis', partidos: 2, fechas: ['2026-07-14T19:00:00Z', '2026-07-15T19:00:00Z'] },
-        { fase: '3er_puesto', partidos: 1, fechas: ['2026-07-18T17:00:00Z'] },
-        { fase: 'final', partidos: 1, fechas: ['2026-07-19T18:00:00Z'] },
-      ];
-
       const partidosToCreate: any[] = [];
-      for (const { fase, partidos: cantidad, fechas } of eliminatorias) {
-        for (let i = 0; i < cantidad; i++) {
-          const fecha = fechas[i] || fechas[fechas.length - 1];
+      for (const { fase, fechas } of fasesEliminatorias) {
+        for (let i = 0; i < fechas.length; i++) {
           partidosToCreate.push({
             fase,
             grupo: null,
             equipoLocal: 'Por definir',
             equipoVisitante: 'Por definir',
-            fechaHora: new Date(fecha),
+            fechaHora: new Date(fechas[i]),
             estado: 'pendiente'
           });
         }
@@ -155,6 +182,33 @@ router.all('/db-fix', async (req: any, res: Response): Promise<void> => {
       results.acciones['generacion_eliminatorias'] = `Creados ${partidosToCreate.length} partidos de eliminatorias (16vos, 8vos, etc.) faltantes.`;
     } else {
       results.acciones['generacion_eliminatorias'] = `Los partidos de eliminatorias ya existen en la base de datos (${countEliminatorias} partidos encontrados).`;
+      
+      // Actualizar las fechas de los partidos existentes para corregirlos
+      let totalActualizados = 0;
+      for (const fa of fasesEliminatorias) {
+        const partidosFase = await Partido.findAll({
+          where: { fase: fa.fase },
+          order: [['id', 'ASC']]
+        });
+        for (let i = 0; i < partidosFase.length; i++) {
+          if (fa.fechas[i]) {
+            await partidosFase[i].update({
+              fechaHora: new Date(fa.fechas[i])
+            });
+            totalActualizados++;
+          }
+        }
+      }
+      results.acciones['actualizacion_fechas'] = `Actualizadas las fechas de ${totalActualizados} partidos de eliminatorias existentes.`;
+    }
+
+    // Corregir y re-calcular automáticamente los cruces de 16vos con la lógica del simulador
+    try {
+      const { cerrarFaseGrupos } = await import('../services/torneo.service');
+      await cerrarFaseGrupos();
+      results.acciones['cierre_fase_grupos'] = 'Re-calculados y actualizados los cruces de 16vos de final en la base de datos según la matriz de la FIFA.';
+    } catch (err: any) {
+      results.acciones['cierre_fase_grupos'] = `No se pudieron actualizar los cruces de 16vos: ${err.message}`;
     }
 
     res.json({ 

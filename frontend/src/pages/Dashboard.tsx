@@ -429,7 +429,11 @@ export default function Dashboard() {
       }
     }
 
-    return filtrados.sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime());
+    if (fase === 'grupos') {
+      return filtrados.sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime());
+    } else {
+      return filtrados.sort((a, b) => a.id - b.id);
+    }
   }, [partidos, fase, grupo, jornada]);
   
   const hoy = new Date();
