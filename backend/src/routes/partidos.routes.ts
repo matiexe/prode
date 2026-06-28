@@ -261,3 +261,34 @@ partidosAdminRouter.post('/cerrar-fase', async (req: AuthRequest, res: Response)
   }
 });
 
+partidosRouter.all('/cron-resultados', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const headers = req.headers;
+    const isVercelCron = headers['x-vercel-cron'] === '1' || !!headers['x-vercel-cron-schedule'];
+    const userAgent = headers['user-agent'];
+    const authHeader = headers['authorization'];
+
+    const secret = req.body?.secret || req.query.secret || headers['x-admin-secret'];
+    
+    if (!isVercelCron && (!secret || secret !== process.env.ADMIN_SECRET)) {
+      console.warn('[CRON-RESULTADOS] Acceso denegado. No es Vercel Cron y no se proveyó ADMIN_SECRET válido.');
+      res.status(401).json({ 
+        error: 'No autorizado. Se requiere firma de Vercel Cron o ADMIN_SECRET correcto.' 
+      });
+      return;
+    }
+
+    console.log('[CRON-RESULTADOS] Iniciando sincronización de marcadores desde API-Football...');
+    const { sincronizarResultadosEnVivo } = await import('../services/apiFootball.service');
+    const result = await sincronizarResultadosEnVivo();
+    
+    res.json({
+      mensaje: 'Sincronización de resultados en vivo completada.',
+      result
+    });
+  } catch (error: any) {
+    console.error('[CRON-RESULTADOS] Error en cron de resultados:', error);
+    res.status(500).json({ error: error.message || 'Error interno del servidor' });
+  }
+});
+
