@@ -264,3 +264,75 @@ export async function cerrarFaseEliminatoria(faseActual: string): Promise<void> 
     });
   }
 }
+
+export async function propagarProgresoLlave(partido: Partido): Promise<void> {
+  const id = partido.id;
+  const ganador = partido.ganadorNombre || 'Por definir';
+
+  // Si el partido no está finalizado, no propagamos nada.
+  if (partido.estado !== 'finalizado') return;
+
+  // Mapeo directo de ID de partido actual a ID de partido siguiente y rol (local/visitante)
+  const MAPEO_PROGRESION: Record<number, { nextId: number, rol: 'local' | 'visitante' }> = {
+    // 16vos -> 8vos
+    74: { nextId: 89, rol: 'local' },
+    77: { nextId: 89, rol: 'visitante' },
+    73: { nextId: 90, rol: 'local' },
+    75: { nextId: 90, rol: 'visitante' },
+    76: { nextId: 91, rol: 'local' },
+    78: { nextId: 91, rol: 'visitante' },
+    79: { nextId: 92, rol: 'local' },
+    80: { nextId: 92, rol: 'visitante' },
+    83: { nextId: 93, rol: 'local' },
+    84: { nextId: 93, rol: 'visitante' },
+    81: { nextId: 94, rol: 'local' },
+    82: { nextId: 94, rol: 'visitante' },
+    86: { nextId: 95, rol: 'local' },
+    88: { nextId: 95, rol: 'visitante' },
+    85: { nextId: 96, rol: 'local' },
+    87: { nextId: 96, rol: 'visitante' },
+
+    // 8vos -> cuartos
+    89: { nextId: 97, rol: 'local' },
+    90: { nextId: 97, rol: 'visitante' },
+    93: { nextId: 98, rol: 'local' },
+    94: { nextId: 98, rol: 'visitante' },
+    91: { nextId: 99, rol: 'local' },
+    92: { nextId: 99, rol: 'visitante' },
+    95: { nextId: 100, rol: 'local' },
+    96: { nextId: 100, rol: 'visitante' },
+
+    // cuartos -> semis
+    97: { nextId: 101, rol: 'local' },
+    98: { nextId: 101, rol: 'visitante' },
+    99: { nextId: 102, rol: 'local' },
+    100: { nextId: 102, rol: 'visitante' }
+  };
+
+  const progresion = MAPEO_PROGRESION[id];
+  if (progresion) {
+    const nextMatch = await Partido.findByPk(progresion.nextId);
+    if (nextMatch) {
+      const updateData = progresion.rol === 'local' 
+        ? { equipoLocal: ganador } 
+        : { equipoVisitante: ganador };
+      await nextMatch.update(updateData);
+      console.log(`[PROGRESION] Propagado ganador de P${id} (${ganador}) a P${progresion.nextId} como ${progresion.rol}.`);
+    }
+  } else if (id === 101 || id === 102) {
+    // semis -> final y 3er puesto
+    const partido3erPuesto = await Partido.findByPk(103);
+    const partidoFinal = await Partido.findByPk(104);
+    
+    const perdedor = ganador === partido.equipoLocal ? partido.equipoVisitante : partido.equipoLocal;
+
+    if (id === 101) {
+      if (partidoFinal) await partidoFinal.update({ equipoLocal: ganador });
+      if (partido3erPuesto) await partido3erPuesto.update({ equipoLocal: perdedor });
+    } else {
+      if (partidoFinal) await partidoFinal.update({ equipoVisitante: ganador });
+      if (partido3erPuesto) await partido3erPuesto.update({ equipoVisitante: perdedor });
+    }
+    console.log(`[PROGRESION] Propagados finalista (${ganador}) y 3er puesto (${perdedor}) desde P${id}.`);
+  }
+}

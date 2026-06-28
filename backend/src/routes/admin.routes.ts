@@ -109,22 +109,22 @@ router.all('/db-fix', async (req: any, res: Response): Promise<void> => {
     });
 
     const fechas16vos = [
-      '2026-06-28T19:00:00Z', // P73
-      '2026-06-29T17:00:00Z', // P74
-      '2026-06-29T19:00:00Z', // P75
-      '2026-06-29T21:00:00Z', // P76
-      '2026-06-30T17:00:00Z', // P77
-      '2026-06-30T19:00:00Z', // P78
-      '2026-06-30T21:00:00Z', // P79
-      '2026-07-01T17:00:00Z', // P80
-      '2026-07-01T19:00:00Z', // P81
-      '2026-07-01T21:00:00Z', // P82
-      '2026-07-02T17:00:00Z', // P83
-      '2026-07-02T19:00:00Z', // P84
-      '2026-07-02T21:00:00Z', // P85
-      '2026-07-03T17:00:00Z', // P86
-      '2026-07-03T19:00:00Z', // P87
-      '2026-07-03T21:00:00Z', // P88
+      '2026-06-28T19:00:00Z', // P73: June 28 at 19:00 UTC (16:00 ART)
+      '2026-06-30T00:30:00Z', // P74: June 29 at 20:30 local (EDT = UTC-4) -> 00:30 UTC June 30 (21:30 ART June 29)
+      '2026-06-30T01:00:00Z', // P75: June 29 at 20:00 local (CDT = UTC-5) -> 01:00 UTC June 30 (22:00 ART June 29)
+      '2026-06-29T17:00:00Z', // P76: June 29 at 12:00 local (CDT = UTC-5) -> 17:00 UTC (14:00 ART)
+      '2026-06-30T21:00:00Z', // P77: June 30 at 22:00 BST -> 21:00 UTC (18:00 ART)
+      '2026-06-30T17:00:00Z', // P78: June 30 at 18:00 BST -> 17:00 UTC (14:00 ART)
+      '2026-07-01T01:00:00Z', // P79: June 30 at 19:00 local (CST = UTC-6) -> 01:00 UTC July 1 (22:00 ART June 30)
+      '2026-07-01T21:00:00Z', // P80: July 1 at 17:00 local (EDT = UTC-4) -> 21:00 UTC (18:00 ART)
+      '2026-07-02T00:00:00Z', // P81: July 1 at 17:00 local (PDT = UTC-7) -> 00:00 UTC July 2 (21:00 ART July 1)
+      '2026-07-02T00:00:00Z', // P82: July 1 at 17:00 local (PDT = UTC-7) -> 00:00 UTC July 2 (21:00 ART July 1)
+      '2026-07-02T23:00:00Z', // P83: July 2 at 19:00 local (EDT = UTC-4) -> 23:00 UTC (20:00 ART)
+      '2026-07-02T19:00:00Z', // P84: July 2 at 12:00 local (PDT = UTC-7) -> 19:00 UTC (16:00 ART)
+      '2026-07-03T03:00:00Z', // P85: July 2 at 20:00 local (PDT = UTC-7) -> 03:00 UTC July 3 (00:00 ART July 3)
+      '2026-07-03T22:00:00Z', // P86: July 3 at 18:00 local (EDT = UTC-4) -> 22:00 UTC (19:00 ART)
+      '2026-07-04T01:30:00Z', // P87: July 3 at 20:30 local (CDT = UTC-5) -> 01:30 UTC July 4 (22:30 ART July 3)
+      '2026-07-03T18:00:00Z', // P88: July 3 at 13:00 local (CDT = UTC-5) -> 18:00 UTC (15:00 ART)
     ];
     const fechas8vos = [
       '2026-07-04T17:00:00Z', // P89

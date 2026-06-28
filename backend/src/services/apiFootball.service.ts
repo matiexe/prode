@@ -242,6 +242,11 @@ export async function sincronizarResultadosEnVivo(): Promise<{
             const { calcularPuntosPronosticos } = await import('./puntuacion.service');
             await calcularPuntosPronosticos(partidoDb.id);
             detalles.push(`Calculados los puntos de pronósticos para el partido ${partidoDb.id}.`);
+
+            // Propagar ganador dinámicamente a la siguiente llave
+            const { propagarProgresoLlave } = await import('./torneo.service');
+            await propagarProgresoLlave(partidoDb);
+            detalles.push(`Propagado ganador del partido ${partidoDb.id} a la siguiente fase.`);
           } catch (calcErr: any) {
             console.error(`Error al calcular puntos para el partido ${partidoDb.id}:`, calcErr.message);
             erroresLlamadas.push(`Calculador puntos P${partidoDb.id}: ${calcErr.message}`);
