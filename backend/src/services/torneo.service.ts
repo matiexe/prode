@@ -115,7 +115,7 @@ export async function cerrarFaseGrupos(): Promise<void> {
   
   const partidos16vos = await Partido.findAll({
     where: { fase: '16vos' },
-    order: [['fechaHora', 'ASC'], ['id', 'ASC']]
+    order: [['id', 'ASC']]
   });
 
   if (partidos16vos.length < 16) {
