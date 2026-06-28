@@ -8,7 +8,7 @@ import ShareStatsImage from '../components/ShareStatsImage';
 import { listarUsuarios, crearUsuario, desactivarUsuario, actualizarUsuario } from '../api/usuarios';
 import { listarPartidos, generarFixture, eliminarFixture, cargarResultado, cerrarFase } from '../api/partidos';
 import { obtenerConfiguracion, actualizarConfiguracion } from '../api/configuracion';
-import { obtenerAdminStats, obtenerAdminInsights, obtenerPronosticosUsuario, obtenerShareData, enviarTestPushGlobal } from '../api/admin';
+import { obtenerAdminStats, obtenerAdminInsights, obtenerPronosticosUsuario, obtenerShareData, enviarTestPushGlobal, ejecutarDbFix } from '../api/admin';
 import type { AdminStats, AdminInsights } from '../api/admin';
 import { getFlagUrl } from '../utils/flags';
 import UserAvatar from '../components/UserAvatar';
@@ -58,6 +58,7 @@ export default function AdminPanel() {
   const [mostrarModalPush, setMostrarModalPush] = useState(false);
   const [pushTitulo, setPushTitulo] = useState('🏆 Alerta Global Prode 2026');
   const [pushMensaje, setPushMensaje] = useState('');
+  const [reparandoDb, setReparandoDb] = useState(false);
 
   useEffect(() => {
     if (!usuario) return;
@@ -249,6 +250,24 @@ export default function AdminPanel() {
     } finally {
       console.log('[ADMIN-PUSH] Finalizado handleEnviarTestGlobal, reseteando estado.');
       setEnviandoTestPush(false);
+    }
+  };
+
+  const handleEjecutarDbFix = async () => {
+    if (!window.confirm('¿Estás seguro de ejecutar la reparación y diagnóstico de la Base de Datos (DB-Fix)? Esto actualizará los horarios oficiales de la FIFA y corregirá los emparejamientos de 16vos en la base de datos.')) return;
+    
+    setReparandoDb(true);
+    setMensaje('');
+    try {
+      const res = await ejecutarDbFix();
+      setMensaje(res.mensaje);
+      fetchPartidos();
+    } catch (err: any) {
+      console.error('[ADMIN-DBFIX] Error al ejecutar DB-Fix:', err);
+      const errMsg = err.response?.data?.error || err.message || 'Error al ejecutar reparación de base de datos';
+      setMensaje(errMsg);
+    } finally {
+      setReparandoDb(false);
     }
   };
 
@@ -712,6 +731,10 @@ export default function AdminPanel() {
                     <button className="admin-btn secondary" onClick={() => setMostrarModalPush(true)} disabled={enviandoTestPush} style={{ border: '1px solid rgba(0, 229, 255, 0.25)' }}>
                       <span className="material-symbols-outlined" style={{ color: '#00e5ff' }}>campaign</span>
                       Enviar Alerta Global
+                    </button>
+                    <button className="admin-btn secondary" onClick={handleEjecutarDbFix} disabled={reparandoDb} style={{ border: '1px solid rgba(255, 179, 0, 0.25)' }}>
+                      <span className="material-symbols-outlined" style={{ color: '#ffb300' }}>build_circle</span>
+                      {reparandoDb ? 'Reparando...' : 'Reparar Base de Datos (DB-Fix)'}
                     </button>
                   </div>
                 </div>

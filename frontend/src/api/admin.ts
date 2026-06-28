@@ -88,3 +88,8 @@ export const enviarTestPushGlobal = async (titulo?: string, mensaje?: string): P
   const { data } = await client.post('/admin/test-push-global', { titulo, mensaje });
   return data;
 };
+
+export const ejecutarDbFix = async (): Promise<{ mensaje: string; detalles: any }> => {
+  const { data } = await client.post('/admin/db-fix');
+  return data;
+};
