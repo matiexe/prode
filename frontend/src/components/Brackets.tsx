@@ -71,6 +71,20 @@ const circularMapping16vos = [
   { index16vos: 4, localSlot: 29, visiteSlot: 30 } // Sweden vs France (Match 77)
 ];
 
+const averageAngle = (a1: number, a2: number): number => {
+  let diff = a2 - a1;
+  while (diff < -Math.PI) diff += 2 * Math.PI;
+  while (diff > Math.PI) diff -= 2 * Math.PI;
+  return a1 + diff / 2;
+};
+
+const getSweepFlag = (a1: number, a2: number): number => {
+  let diff = a2 - a1;
+  while (diff < -Math.PI) diff += 2 * Math.PI;
+  while (diff > Math.PI) diff -= 2 * Math.PI;
+  return diff > 0 ? 1 : 0;
+};
+
 export default function Brackets({ partidos }: BracketsProps) {
   const [viewMode, setViewMode] = useState<'circular' | 'classic'>('circular');
   const [hoveredInfo, setHoveredInfo] = useState<{ title: string; desc: string; x: number; y: number } | null>(null);
@@ -179,7 +193,7 @@ export default function Brackets({ partidos }: BracketsProps) {
       const match = sorted16vos[m.index16vos];
       const angleLocal = getAngle(m.localSlot);
       const angleVisite = getAngle(m.visiteSlot);
-      const childAngle = (angleLocal + angleVisite) / 2;
+      const childAngle = averageAngle(angleLocal, angleVisite);
 
       const pLocalLabel = posiciones16vos[m.index16vos]?.local || "TBD";
       const pVisiteLabel = posiciones16vos[m.index16vos]?.visitante || "TBD";
@@ -237,7 +251,7 @@ export default function Brackets({ partidos }: BracketsProps) {
         color: 'var(--primary)'
       });
       lines.push({
-        path: `M ${x1_m} ${y1_m} A ${R_mid} ${R_mid} 0 0 ${angleVisite > angleLocal ? 1 : 0} ${x2_m} ${y2_m}`,
+        path: `M ${x1_m} ${y1_m} A ${R_mid} ${R_mid} 0 0 ${getSweepFlag(angleLocal, angleVisite)} ${x2_m} ${y2_m}`,
         highlighted: hasWinner,
         color: 'var(--primary)'
       });
@@ -262,7 +276,7 @@ export default function Brackets({ partidos }: BracketsProps) {
       
       const angleLocal = parentLocal?.childAngle ?? 0;
       const angleVisite = parentVisite?.childAngle ?? 0;
-      const childAngle = (angleLocal + angleVisite) / 2;
+      const childAngle = averageAngle(angleLocal, angleVisite);
 
       const localNode = {
         id: `m${match?.id || idx}-l`,
@@ -316,7 +330,7 @@ export default function Brackets({ partidos }: BracketsProps) {
           color: 'var(--primary)'
         });
         lines.push({
-          path: `M ${x1_m} ${y1_m} A ${R_mid} ${R_mid} 0 0 ${angleVisite > angleLocal ? 1 : 0} ${x2_m} ${y2_m}`,
+          path: `M ${x1_m} ${y1_m} A ${R_mid} ${R_mid} 0 0 ${getSweepFlag(angleLocal, angleVisite)} ${x2_m} ${y2_m}`,
           highlighted: hasWinner,
           color: 'var(--primary)'
         });
@@ -342,7 +356,7 @@ export default function Brackets({ partidos }: BracketsProps) {
       
       const angleLocal = parentLocal?.childAngle ?? 0;
       const angleVisite = parentVisite?.childAngle ?? 0;
-      const childAngle = (angleLocal + angleVisite) / 2;
+      const childAngle = averageAngle(angleLocal, angleVisite);
 
       const localNode = {
         id: `m${match?.id || idx}-l`,
@@ -396,7 +410,7 @@ export default function Brackets({ partidos }: BracketsProps) {
           color: 'var(--primary)'
         });
         lines.push({
-          path: `M ${x1_m} ${y1_m} A ${R_mid} ${R_mid} 0 0 ${angleVisite > angleLocal ? 1 : 0} ${x2_m} ${y2_m}`,
+          path: `M ${x1_m} ${y1_m} A ${R_mid} ${R_mid} 0 0 ${getSweepFlag(angleLocal, angleVisite)} ${x2_m} ${y2_m}`,
           highlighted: hasWinner,
           color: 'var(--primary)'
         });
@@ -422,7 +436,7 @@ export default function Brackets({ partidos }: BracketsProps) {
       
       const angleLocal = parentLocal?.childAngle ?? 0;
       const angleVisite = parentVisite?.childAngle ?? 0;
-      const childAngle = (angleLocal + angleVisite) / 2;
+      const childAngle = averageAngle(angleLocal, angleVisite);
 
       const localNode = {
         id: `m${match?.id || idx}-l`,
@@ -476,7 +490,7 @@ export default function Brackets({ partidos }: BracketsProps) {
           color: 'var(--primary)'
         });
         lines.push({
-          path: `M ${x1_m} ${y1_m} A ${R_mid} ${R_mid} 0 0 ${angleVisite > angleLocal ? 1 : 0} ${x2_m} ${y2_m}`,
+          path: `M ${x1_m} ${y1_m} A ${R_mid} ${R_mid} 0 0 ${getSweepFlag(angleLocal, angleVisite)} ${x2_m} ${y2_m}`,
           highlighted: hasWinner,
           color: 'var(--primary)'
         });
