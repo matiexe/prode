@@ -211,6 +211,24 @@ router.all('/db-fix', async (req: any, res: Response): Promise<void> => {
       results.acciones['cierre_fase_grupos'] = `No se pudieron actualizar los cruces de 16vos: ${err.message}`;
     }
 
+    // Propagar ganadores de todos los partidos ya finalizados para curar la base de datos
+    try {
+      const partidosFinalizados = await Partido.findAll({
+        where: {
+          fase: { [Op.in]: ['16vos', '8vos', 'cuartos', 'semis'] },
+          estado: 'finalizado'
+        },
+        order: [['id', 'ASC']]
+      });
+      const { propagarProgresoLlave } = await import('../services/torneo.service');
+      for (const p of partidosFinalizados) {
+        await propagarProgresoLlave(p);
+      }
+      results.acciones['propagacion_ganadores'] = `Propagados los ganadores de ${partidosFinalizados.length} partidos eliminatorios ya finalizados.`;
+    } catch (err: any) {
+      results.acciones['propagacion_ganadores'] = `No se pudieron propagar los ganadores: ${err.message}`;
+    }
+
     res.json({ 
       mensaje: 'Proceso de reparación y diagnóstico completado', 
       db: sequelize.getDatabaseName(),

@@ -52,22 +52,22 @@ const MAPEO_CRUCES = {
 // Mapeo circular de los 16 partidos a las 32 posiciones de la corona exterior.
 // El orden está calculado de manera que las llaves nunca se crucen y se unan perfectamente hacia el centro.
 const circularMapping16vos = [
-  { matchId: 74, localSlot: 0, visiteSlot: 31 }, // Germany (0) vs Paraguay (31)
-  { matchId: 76, localSlot: 1, visiteSlot: 2 },  // Brazil (1) vs Japan (2)
-  { matchId: 78, localSlot: 3, visiteSlot: 4 },  // Ivory Coast (3) vs Norway (4)
-  { matchId: 79, localSlot: 5, visiteSlot: 6 },  // Mexico (5) vs Ecuador (6)
-  { matchId: 80, localSlot: 7, visiteSlot: 8 },  // England (7) vs DR Congo (8)
-  { matchId: 86, localSlot: 9, visiteSlot: 10 }, // Argentina (9) vs Cape Verde (10)
-  { matchId: 88, localSlot: 11, visiteSlot: 12 },// Australia (11) vs Egypt (12)
-  { matchId: 85, localSlot: 13, visiteSlot: 14 },// Switzerland (13) vs Algeria (14)
-  { matchId: 83, localSlot: 15, visiteSlot: 16 },// Colombia (15) vs Ghana (16)
-  { matchId: 82, localSlot: 17, visiteSlot: 18 },// Senegal (17) vs Belgium (18)
-  { matchId: 81, localSlot: 19, visiteSlot: 20 },// Bosnia (19) vs USA (20)
-  { matchId: 84, localSlot: 21, visiteSlot: 22 },// Austria (21) vs Spain (22)
-  { matchId: 87, localSlot: 23, visiteSlot: 24 },// Croatia (23) vs Portugal (24)
-  { matchId: 75, localSlot: 25, visiteSlot: 26 },// Morocco (25) vs Netherlands (26)
-  { matchId: 73, localSlot: 27, visiteSlot: 28 },// Canada (27) vs South Africa (28)
-  { matchId: 77, localSlot: 29, visiteSlot: 30 } // Sweden (29) vs France (30)
+  { index16vos: 1, localSlot: 0, visiteSlot: 31 }, // Germany (Match 74)
+  { index16vos: 3, localSlot: 1, visiteSlot: 2 },  // Brazil vs Japan (Match 76)
+  { index16vos: 5, localSlot: 3, visiteSlot: 4 },  // Ivory Coast vs Norway (Match 78)
+  { index16vos: 6, localSlot: 5, visiteSlot: 6 },  // Mexico vs Ecuador (Match 79)
+  { index16vos: 7, localSlot: 7, visiteSlot: 8 },  // England vs DR Congo (Match 80)
+  { index16vos: 13, localSlot: 9, visiteSlot: 10 }, // Argentina vs Cape Verde (Match 86)
+  { index16vos: 15, localSlot: 11, visiteSlot: 12 },// Australia vs Egypt (Match 88)
+  { index16vos: 12, localSlot: 13, visiteSlot: 14 },// Switzerland vs Algeria (Match 85)
+  { index16vos: 10, localSlot: 15, visiteSlot: 16 },// Colombia vs Ghana (Match 83)
+  { index16vos: 9, localSlot: 17, visiteSlot: 18 },// Senegal vs Belgium (Match 82)
+  { index16vos: 8, localSlot: 19, visiteSlot: 20 },// Bosnia vs USA (Match 81)
+  { index16vos: 11, localSlot: 21, visiteSlot: 22 },// Austria vs Spain (Match 84)
+  { index16vos: 14, localSlot: 23, visiteSlot: 24 },// Croatia vs Portugal (Match 87)
+  { index16vos: 2, localSlot: 25, visiteSlot: 26 },// Morocco vs Netherlands (Match 75)
+  { index16vos: 0, localSlot: 27, visiteSlot: 28 },// Canada vs South Africa (Match 73)
+  { index16vos: 4, localSlot: 29, visiteSlot: 30 } // Sweden vs France (Match 77)
 ];
 
 export default function Brackets({ partidos }: BracketsProps) {
@@ -174,14 +174,14 @@ export default function Brackets({ partidos }: BracketsProps) {
     const lines: any[] = [];
 
     // --- NIVEL 0: 16vos (32 equipos en R0) ---
-    const level0Matches = circularMapping16vos.map((m, idx) => {
-      const match = sorted16vos.find(p => p.id === m.matchId) || sorted16vos[idx];
+    const level0Matches = circularMapping16vos.map((m) => {
+      const match = sorted16vos[m.index16vos];
       const angleLocal = getAngle(m.localSlot);
       const angleVisite = getAngle(m.visiteSlot);
       const childAngle = (angleLocal + angleVisite) / 2;
 
-      const pLocalLabel = posiciones16vos.find((_, i) => sorted16vos[i]?.id === match.id)?.local || "TBD";
-      const pVisiteLabel = posiciones16vos.find((_, i) => sorted16vos[i]?.id === match.id)?.visitante || "TBD";
+      const pLocalLabel = posiciones16vos[m.index16vos]?.local || "TBD";
+      const pVisiteLabel = posiciones16vos[m.index16vos]?.visitante || "TBD";
 
       const localNode = {
         id: `m${match.id}-l`,
@@ -256,11 +256,11 @@ export default function Brackets({ partidos }: BracketsProps) {
     // --- NIVEL 1: 8vos (16 clasificados en R1 -> 8 clasificados en R2) ---
     const level1Matches = MAPEO_CRUCES['16vos'].map((cruce, idx) => {
       const match = sorted8vos[idx];
-      const parentLocal = level0Matches[cruce.local];
-      const parentVisite = level0Matches[cruce.visitante];
+      const parentLocal = level0Matches.find(m => m.match.id === sorted16vos[cruce.local]?.id);
+      const parentVisite = level0Matches.find(m => m.match.id === sorted16vos[cruce.visitante]?.id);
       
-      const angleLocal = parentLocal.childAngle;
-      const angleVisite = parentVisite.childAngle;
+      const angleLocal = parentLocal?.childAngle ?? 0;
+      const angleVisite = parentVisite?.childAngle ?? 0;
       const childAngle = (angleLocal + angleVisite) / 2;
 
       const localNode = {
@@ -336,11 +336,11 @@ export default function Brackets({ partidos }: BracketsProps) {
     // --- NIVEL 2: Cuartos (8 clasificados en R2 -> 4 clasificados en R3) ---
     const level2Matches = MAPEO_CRUCES['8vos'].map((cruce, idx) => {
       const match = sortedCuartos[idx];
-      const parentLocal = level1Matches[cruce.local];
-      const parentVisite = level1Matches[cruce.visitante];
+      const parentLocal = level1Matches.find(m => m.match?.id === sorted8vos[cruce.local]?.id);
+      const parentVisite = level1Matches.find(m => m.match?.id === sorted8vos[cruce.visitante]?.id);
       
-      const angleLocal = parentLocal.childAngle;
-      const angleVisite = parentVisite.childAngle;
+      const angleLocal = parentLocal?.childAngle ?? 0;
+      const angleVisite = parentVisite?.childAngle ?? 0;
       const childAngle = (angleLocal + angleVisite) / 2;
 
       const localNode = {
@@ -416,11 +416,11 @@ export default function Brackets({ partidos }: BracketsProps) {
     // --- NIVEL 3: Semis (4 clasificados en R3 -> 2 clasificados en R4) ---
     const level3Matches = MAPEO_CRUCES['cuartos'].map((cruce, idx) => {
       const match = sortedSemis[idx];
-      const parentLocal = level2Matches[cruce.local];
-      const parentVisite = level2Matches[cruce.visitante];
+      const parentLocal = level2Matches.find(m => m.match?.id === sortedCuartos[cruce.local]?.id);
+      const parentVisite = level2Matches.find(m => m.match?.id === sortedCuartos[cruce.visitante]?.id);
       
-      const angleLocal = parentLocal.childAngle;
-      const angleVisite = parentVisite.childAngle;
+      const angleLocal = parentLocal?.childAngle ?? 0;
+      const angleVisite = parentVisite?.childAngle ?? 0;
       const childAngle = (angleLocal + angleVisite) / 2;
 
       const localNode = {
@@ -495,11 +495,11 @@ export default function Brackets({ partidos }: BracketsProps) {
 
     // --- NIVEL 4: Final (2 clasificados en R4 -> Campeón en 0,0) ---
     if (finalMatch) {
-      const parentLocal = level3Matches[0];
-      const parentVisite = level3Matches[1];
+      const parentLocal = level3Matches.find(m => m.match?.id === sortedSemis[0]?.id);
+      const parentVisite = level3Matches.find(m => m.match?.id === sortedSemis[1]?.id);
       
-      const angleLocal = parentLocal.childAngle;
-      const angleVisite = parentVisite.childAngle;
+      const angleLocal = parentLocal?.childAngle ?? 0;
+      const angleVisite = parentVisite?.childAngle ?? 0;
 
       const localNode = {
         id: `m${finalMatch.id}-l`,
@@ -626,6 +626,9 @@ export default function Brackets({ partidos }: BracketsProps) {
                 </clipPath>
                 <clipPath id="circle-badge-clip-large">
                   <circle cx="0" cy="0" r="22" />
+                </clipPath>
+                <clipPath id="circle-badge-clip-center">
+                  <circle cx="0" cy="0" r="38" />
                 </clipPath>
                 <radialGradient id="glow-gold" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" stopColor="#ffb300" stopOpacity="0.4" />
@@ -796,15 +799,15 @@ export default function Brackets({ partidos }: BracketsProps) {
                   <circle cx="0" cy="0" r="26" fill="none" stroke="#ffb300" strokeWidth="2" strokeDasharray="3,3" />
                 </g>
               ) : (
-                <text 
-                  x="0" 
-                  y="12" 
-                  textAnchor="middle" 
-                  fill="#ffb300" 
-                  style={{ fontSize: '36px', pointerEvents: 'none' }}
-                >
-                  🏆
-                </text>
+                <image 
+                  href="/fifa.jpg" 
+                  x="-38" 
+                  y="-38" 
+                  width="76" 
+                  height="76" 
+                  clipPath="url(#circle-badge-clip-center)"
+                  style={{ pointerEvents: 'none' }}
+                />
               )}
             </svg>
           </div>
