@@ -511,12 +511,9 @@ export default function Brackets({ partidos }: BracketsProps) {
     });
 
     // --- NIVEL 4: Final (2 clasificados en R4 -> Campeón en 0,0) ---
-    if (finalMatch) {
-      const parentLocal = level3Matches.find(m => m.match?.id === sortedSemis[0]?.id);
-      const parentVisite = level3Matches.find(m => m.match?.id === sortedSemis[1]?.id);
-      
-      const angleLocal = parentLocal?.childAngle ?? 0;
-      const angleVisite = parentVisite?.childAngle ?? 0;
+    if (finalMatch && level3Matches.length > 0) {
+      const angleLocal = Math.PI; // 9 o'clock (izquierda)
+      const angleVisite = 0;      // 3 o'clock (derecha)
 
       const localNode = {
         id: `m${finalMatch.id}-l`,
@@ -634,8 +631,8 @@ export default function Brackets({ partidos }: BracketsProps) {
       </div>
 
       {viewMode === 'circular' && circularData ? (
-        <div style={{ position: 'relative', width: '100%', maxWidth: '880px', margin: '0 auto', overflowX: 'auto', background: 'radial-gradient(circle, rgba(177, 198, 249, 0.03) 0%, rgba(0,0,0,0) 70%)', borderRadius: '50%' }}>
-          <div style={{ minWidth: '780px', padding: '1rem' }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '880px', margin: '0 auto', background: 'radial-gradient(circle, rgba(177, 198, 249, 0.03) 0%, rgba(0,0,0,0) 70%)' }}>
+          <div style={{ padding: '0.5rem' }}>
             <svg viewBox="-510 -510 1020 1020" style={{ width: '100%', height: 'auto', display: 'block' }}>
               <defs>
                 <clipPath id="circle-badge-clip">
@@ -767,6 +764,7 @@ export default function Brackets({ partidos }: BracketsProps) {
                     {isOuter && hasTeam && (
                       <g transform={`rotate(${rotateText})`}>
                         <text
+                          className="circular-team-label"
                           x={offsetText}
                           y="4"
                           textAnchor={textAnchor}

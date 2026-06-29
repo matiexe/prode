@@ -2458,3 +2458,9 @@ body::after {
   }
 }
 
+@media (max-width: 768px) {
+  .circular-team-label {
+    display: none !important;
+  }
+}
+
