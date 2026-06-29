@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { getFlagUrl, getFlagSrcset } from '../utils/flags';
-import fifaImg from '../assets/fifa.jpg';
+import copaDelMundoImg from '../assets/copadelmundo.png';
 import type { Partido } from '../types';
 
 interface BracketsProps {
@@ -86,7 +86,9 @@ const getSweepFlag = (a1: number, a2: number): number => {
 };
 
 export default function Brackets({ partidos }: BracketsProps) {
-  const [viewMode, setViewMode] = useState<'circular' | 'classic'>('circular');
+  const [viewMode, setViewMode] = useState<'circular' | 'classic'>(() => {
+    return typeof window !== 'undefined' && window.innerWidth < 768 ? 'classic' : 'circular';
+  });
   const [hoveredInfo, setHoveredInfo] = useState<{ title: string; desc: string; x: number; y: number } | null>(null);
 
   const sorted16vos = useMemo(() => partidos.filter(p => p.fase === '16vos').sort((a, b) => a.id - b.id), [partidos]);
@@ -786,7 +788,6 @@ export default function Brackets({ partidos }: BracketsProps) {
 
               {/* Copa Central */}
               <circle cx="0" cy="0" r="60" fill="url(#glow-gold)" opacity="0.6" />
-              <circle cx="0" cy="0" r="40" fill="#151719" stroke="#ffb300" strokeWidth="2.5" />
               
               {championNode ? (
                 <g 
@@ -803,6 +804,7 @@ export default function Brackets({ partidos }: BracketsProps) {
                   }}
                   onMouseLeave={() => setHoveredInfo(null)}
                 >
+                  <circle cx="0" cy="0" r="24" fill="#151719" stroke="#ffb300" strokeWidth="1.5" />
                   <image 
                     href={championNode.flag || ''} 
                     x="-22" 
@@ -815,13 +817,15 @@ export default function Brackets({ partidos }: BracketsProps) {
                 </g>
               ) : (
                 <image 
-                  href={fifaImg} 
-                  x="-38" 
-                  y="-38" 
-                  width="76" 
-                  height="76" 
-                  clipPath="url(#circle-badge-clip-center)"
-                  style={{ pointerEvents: 'none' }}
+                  href={copaDelMundoImg} 
+                  x="-36" 
+                  y="-55" 
+                  width="72" 
+                  height="110" 
+                  style={{ 
+                    filter: 'drop-shadow(0 0 16px rgba(255, 179, 0, 0.85)) drop-shadow(0 0 4px rgba(255, 255, 255, 0.35))',
+                    pointerEvents: 'none' 
+                  }}
                 />
               )}
             </svg>
