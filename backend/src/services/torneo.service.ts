@@ -170,6 +170,30 @@ export async function cerrarFaseGrupos(): Promise<void> {
   }
 }
 
+// Mapeo oficial de emparejamientos del Mundial 2026 por índices ordenados por ID
+const MAPEO_CRUCES: Record<string, { local: number, visitante: number }[]> = {
+  '16vos': [ // Mapea de 16vos (16 partidos) a 8vos (8 partidos)
+    { local: 1, visitante: 4 },   // P89: Ganador P74 (idx 1) vs Ganador P77 (idx 4)
+    { local: 0, visitante: 2 },   // P90: Ganador P73 (idx 0) vs Ganador P75 (idx 2)
+    { local: 3, visitante: 5 },   // P91: Ganador P76 (idx 3) vs Ganador P78 (idx 5)
+    { local: 6, visitante: 7 },   // P92: Ganador P79 (idx 6) vs Ganador P80 (idx 7)
+    { local: 10, visitante: 11 }, // P93: Ganador P83 (idx 10) vs Ganador P84 (idx 11)
+    { local: 8, visitante: 9 },   // P94: Ganador P81 (idx 8) vs Ganador P82 (idx 9)
+    { local: 13, visitante: 15 }, // P95: Ganador P86 (idx 13) vs Ganador P88 (idx 15)
+    { local: 12, visitante: 14 }  // P96: Ganador P85 (idx 12) vs Ganador P87 (idx 14)
+  ],
+  '8vos': [ // Mapea de 8vos (8 partidos) a cuartos (4 partidos)
+    { local: 0, visitante: 1 }, // P97: Ganador P89 (idx 0) vs Ganador P90 (idx 1)
+    { local: 4, visitante: 5 }, // P98: Ganador P93 (idx 4) vs Ganador P94 (idx 5)
+    { local: 2, visitante: 3 }, // P99: Ganador P91 (idx 2) vs Ganador P92 (idx 3)
+    { local: 6, visitante: 7 }  // P100: Ganador P95 (idx 6) vs Ganador P96 (idx 7)
+  ],
+  'cuartos': [ // Mapea de cuartos (4 partidos) a semis (2 partidos)
+    { local: 0, visitante: 1 }, // P101: Ganador P97 (idx 0) vs Ganador P98 (idx 1)
+    { local: 2, visitante: 3 }  // P102: Ganador P99 (idx 2) vs Ganador P100 (idx 3)
+  ]
+};
+
 export async function cerrarFaseEliminatoria(faseActual: string): Promise<void> {
   const fasesOrdenadas = ['grupos', '16vos', '8vos', 'cuartos', 'semis', 'final'];
   const currentIndex = fasesOrdenadas.indexOf(faseActual);
@@ -224,29 +248,7 @@ export async function cerrarFaseEliminatoria(faseActual: string): Promise<void> 
     return;
   }
 
-  // Mapeo oficial de emparejamientos del Mundial 2026 por índices ordenados por ID
-  const MAPEO_CRUCES: Record<string, { local: number, visitante: number }[]> = {
-    '16vos': [ // Mapea de 16vos (16 partidos) a 8vos (8 partidos)
-      { local: 1, visitante: 4 },   // P89: Ganador P74 (idx 1) vs Ganador P77 (idx 4)
-      { local: 0, visitante: 2 },   // P90: Ganador P73 (idx 0) vs Ganador P75 (idx 2)
-      { local: 3, visitante: 5 },   // P91: Ganador P76 (idx 3) vs Ganador P78 (idx 5)
-      { local: 6, visitante: 7 },   // P92: Ganador P79 (idx 6) vs Ganador P80 (idx 7)
-      { local: 10, visitante: 11 }, // P93: Ganador P83 (idx 10) vs Ganador P84 (idx 11)
-      { local: 8, visitante: 9 },   // P94: Ganador P81 (idx 8) vs Ganador P82 (idx 9)
-      { local: 13, visitante: 15 }, // P95: Ganador P86 (idx 13) vs Ganador P88 (idx 15)
-      { local: 12, visitante: 14 }  // P96: Ganador P85 (idx 12) vs Ganador P87 (idx 14)
-    ],
-    '8vos': [ // Mapea de 8vos (8 partidos) a cuartos (4 partidos)
-      { local: 0, visitante: 1 }, // P97: Ganador P89 (idx 0) vs Ganador P90 (idx 1)
-      { local: 4, visitante: 5 }, // P98: Ganador P93 (idx 4) vs Ganador P94 (idx 5)
-      { local: 2, visitante: 3 }, // P99: Ganador P91 (idx 2) vs Ganador P92 (idx 3)
-      { local: 6, visitante: 7 }  // P100: Ganador P95 (idx 6) vs Ganador P96 (idx 7)
-    ],
-    'cuartos': [ // Mapea de cuartos (4 partidos) a semis (2 partidos)
-      { local: 0, visitante: 1 }, // P101: Ganador P97 (idx 0) vs Ganador P98 (idx 1)
-      { local: 2, visitante: 3 }  // P102: Ganador P99 (idx 2) vs Ganador P100 (idx 3)
-    ]
-  };
+
 
   const cruces = MAPEO_CRUCES[faseActual];
   if (!cruces) {
@@ -266,73 +268,72 @@ export async function cerrarFaseEliminatoria(faseActual: string): Promise<void> 
 }
 
 export async function propagarProgresoLlave(partido: Partido): Promise<void> {
-  const id = partido.id;
   const ganador = partido.ganadorNombre || 'Por definir';
 
   // Si el partido no está finalizado, no propagamos nada.
   if (partido.estado !== 'finalizado') return;
 
-  // Mapeo directo de ID de partido actual a ID de partido siguiente y rol (local/visitante)
-  const MAPEO_PROGRESION: Record<number, { nextId: number, rol: 'local' | 'visitante' }> = {
-    // 16vos -> 8vos
-    74: { nextId: 89, rol: 'local' },
-    77: { nextId: 89, rol: 'visitante' },
-    73: { nextId: 90, rol: 'local' },
-    75: { nextId: 90, rol: 'visitante' },
-    76: { nextId: 91, rol: 'local' },
-    78: { nextId: 91, rol: 'visitante' },
-    79: { nextId: 92, rol: 'local' },
-    80: { nextId: 92, rol: 'visitante' },
-    83: { nextId: 93, rol: 'local' },
-    84: { nextId: 93, rol: 'visitante' },
-    81: { nextId: 94, rol: 'local' },
-    82: { nextId: 94, rol: 'visitante' },
-    86: { nextId: 95, rol: 'local' },
-    88: { nextId: 95, rol: 'visitante' },
-    85: { nextId: 96, rol: 'local' },
-    87: { nextId: 96, rol: 'visitante' },
+  // Buscar todos los partidos eliminatorios para calcular índices relativos y evitar depender de IDs rígidos
+  const { Op } = await import('sequelize');
+  const todosLosPartidos = await Partido.findAll({
+    where: {
+      fase: { [Op.in]: ['16vos', '8vos', 'cuartos', 'semis', 'final', '3er_puesto'] }
+    },
+    order: [['id', 'ASC']]
+  });
 
+  const sorted16vos = todosLosPartidos.filter(p => p.fase === '16vos');
+  const sorted8vos = todosLosPartidos.filter(p => p.fase === '8vos');
+  const sortedCuartos = todosLosPartidos.filter(p => p.fase === 'cuartos');
+  const sortedSemis = todosLosPartidos.filter(p => p.fase === 'semis');
+  const finalMatch = todosLosPartidos.find(p => p.fase === 'final');
+  const tercerPuestoMatch = todosLosPartidos.find(p => p.fase === '3er_puesto');
+
+  // Buscar a qué fase pertenece el partido actual y su índice relativo
+  const idx16vos = sorted16vos.findIndex(p => p.id === partido.id);
+  const idx8vos = sorted8vos.findIndex(p => p.id === partido.id);
+  const idxCuartos = sortedCuartos.findIndex(p => p.id === partido.id);
+  const idxSemis = sortedSemis.findIndex(p => p.id === partido.id);
+
+  if (idx16vos !== -1) {
+    // 16vos -> 8vos: Buscamos qué cruce de 8vos tiene a este partido como local o visitante
+    for (let i = 0; i < MAPEO_CRUCES['16vos'].length; i++) {
+      const cruce = MAPEO_CRUCES['16vos'][i];
+      if (cruce.local === idx16vos) {
+        if (sorted8vos[i]) await sorted8vos[i].update({ equipoLocal: ganador });
+      } else if (cruce.visitante === idx16vos) {
+        if (sorted8vos[i]) await sorted8vos[i].update({ equipoVisitante: ganador });
+      }
+    }
+  } else if (idx8vos !== -1) {
     // 8vos -> cuartos
-    89: { nextId: 97, rol: 'local' },
-    90: { nextId: 97, rol: 'visitante' },
-    93: { nextId: 98, rol: 'local' },
-    94: { nextId: 98, rol: 'visitante' },
-    91: { nextId: 99, rol: 'local' },
-    92: { nextId: 99, rol: 'visitante' },
-    95: { nextId: 100, rol: 'local' },
-    96: { nextId: 100, rol: 'visitante' },
-
+    for (let i = 0; i < MAPEO_CRUCES['8vos'].length; i++) {
+      const cruce = MAPEO_CRUCES['8vos'][i];
+      if (cruce.local === idx8vos) {
+        if (sortedCuartos[i]) await sortedCuartos[i].update({ equipoLocal: ganador });
+      } else if (cruce.visitante === idx8vos) {
+        if (sortedCuartos[i]) await sortedCuartos[i].update({ equipoVisitante: ganador });
+      }
+    }
+  } else if (idxCuartos !== -1) {
     // cuartos -> semis
-    97: { nextId: 101, rol: 'local' },
-    98: { nextId: 101, rol: 'visitante' },
-    99: { nextId: 102, rol: 'local' },
-    100: { nextId: 102, rol: 'visitante' }
-  };
-
-  const progresion = MAPEO_PROGRESION[id];
-  if (progresion) {
-    const nextMatch = await Partido.findByPk(progresion.nextId);
-    if (nextMatch) {
-      const updateData = progresion.rol === 'local' 
-        ? { equipoLocal: ganador } 
-        : { equipoVisitante: ganador };
-      await nextMatch.update(updateData);
-      console.log(`[PROGRESION] Propagado ganador de P${id} (${ganador}) a P${progresion.nextId} como ${progresion.rol}.`);
+    for (let i = 0; i < MAPEO_CRUCES['cuartos'].length; i++) {
+      const cruce = MAPEO_CRUCES['cuartos'][i];
+      if (cruce.local === idxCuartos) {
+        if (sortedSemis[i]) await sortedSemis[i].update({ equipoLocal: ganador });
+      } else if (cruce.visitante === idxCuartos) {
+        if (sortedSemis[i]) await sortedSemis[i].update({ equipoVisitante: ganador });
+      }
     }
-  } else if (id === 101 || id === 102) {
+  } else if (idxSemis !== -1) {
     // semis -> final y 3er puesto
-    const partido3erPuesto = await Partido.findByPk(103);
-    const partidoFinal = await Partido.findByPk(104);
-    
     const perdedor = ganador === partido.equipoLocal ? partido.equipoVisitante : partido.equipoLocal;
-
-    if (id === 101) {
-      if (partidoFinal) await partidoFinal.update({ equipoLocal: ganador });
-      if (partido3erPuesto) await partido3erPuesto.update({ equipoLocal: perdedor });
+    if (idxSemis === 0) {
+      if (finalMatch) await finalMatch.update({ equipoLocal: ganador });
+      if (tercerPuestoMatch) await tercerPuestoMatch.update({ equipoLocal: perdedor });
     } else {
-      if (partidoFinal) await partidoFinal.update({ equipoVisitante: ganador });
-      if (partido3erPuesto) await partido3erPuesto.update({ equipoVisitante: perdedor });
+      if (finalMatch) await finalMatch.update({ equipoVisitante: ganador });
+      if (tercerPuestoMatch) await tercerPuestoMatch.update({ equipoVisitante: perdedor });
     }
-    console.log(`[PROGRESION] Propagados finalista (${ganador}) y 3er puesto (${perdedor}) desde P${id}.`);
   }
 }

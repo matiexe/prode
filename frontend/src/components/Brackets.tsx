@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { getFlagUrl, getFlagSrcset } from '../utils/flags';
+import fifaImg from '../assets/fifa.jpg';
 import type { Partido } from '../types';
 
 interface BracketsProps {
@@ -800,7 +801,7 @@ export default function Brackets({ partidos }: BracketsProps) {
                 </g>
               ) : (
                 <image 
-                  href="/fifa.jpg" 
+                  href={fifaImg} 
                   x="-38" 
                   y="-38" 
                   width="76" 
