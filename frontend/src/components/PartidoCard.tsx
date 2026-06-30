@@ -66,9 +66,24 @@ export default function PartidoCard({
 
         <div className="marcador">
           {partido.estado === 'finalizado' ? (
-            <span className="resultado-real">
-              {partido.golesLocal} - {partido.golesVisitante}
-            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+              <span className="resultado-real">
+                {partido.golesLocal} - {partido.golesVisitante}
+              </span>
+              {partido.fase !== 'grupos' && partido.golesLocal === partido.golesVisitante && partido.ganadorNombre && (
+                <span style={{ 
+                  fontSize: '0.6rem', 
+                  color: 'var(--tertiary)', 
+                  fontWeight: 800, 
+                  fontFamily: 'Anybody', 
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.03em',
+                  whiteSpace: 'nowrap'
+                }}>
+                  ({partido.ganadorNombre} por pen.)
+                </span>
+              )}
+            </div>
           ) : (
             <span className="vs">vs</span>
           )}

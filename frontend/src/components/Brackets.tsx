@@ -156,6 +156,22 @@ export default function Brackets({ partidos }: BracketsProps) {
           </div>
           {p.estado === 'finalizado' && <span style={{ fontWeight: '700', color: 'var(--primary)' }}>{p.golesVisitante}</span>}
         </div>
+        {p.estado === 'finalizado' && p.golesLocal === p.golesVisitante && p.ganadorNombre && (
+          <div style={{ 
+            fontSize: '0.65rem', 
+            color: 'var(--tertiary)', 
+            fontWeight: 800, 
+            textAlign: 'center', 
+            marginTop: '0.4rem', 
+            borderTop: '1px dashed rgba(255,255,255,0.1)', 
+            paddingTop: '0.2rem',
+            fontFamily: 'Anybody',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em'
+          }}>
+            Ganó {p.ganadorNombre} por penales
+          </div>
+        )}
       </div>
     );
   };
@@ -720,7 +736,15 @@ export default function Brackets({ partidos }: BracketsProps) {
                       const rect = e.currentTarget.getBoundingClientRect();
                       setHoveredInfo({
                         title: `${match.equipoLocal} vs ${match.equipoVisitante}`,
-                        desc: `${match.fase.toUpperCase()} • ${match.estado === 'finalizado' ? `Resultado: ${match.golesLocal}-${match.golesVisitante}` : 'Pendiente'}`,
+                        desc: `${match.fase.toUpperCase()} • ${
+                          match.estado === 'finalizado' 
+                            ? `Resultado: ${match.golesLocal}-${match.golesVisitante}${
+                                match.golesLocal === match.golesVisitante && match.ganadorNombre 
+                                  ? ` (${match.ganadorNombre} por pen.)` 
+                                  : ''
+                              }`
+                            : 'Pendiente'
+                        }`,
                         x: rect.left + window.scrollX + rect.width / 2,
                         y: rect.top + window.scrollY - 12
                       });
