@@ -59,7 +59,7 @@ partidosAdminRouter.post('/generar', async (_req: AuthRequest, res: Response): P
       '2026-06-29T20:30:00Z', // P74: June 29 at 16:30 local (EDT = UTC-4) -> 20:30 UTC (17:30 ART)
       '2026-06-30T01:00:00Z', // P75: June 29 at 20:00 local (CDT = UTC-5) -> 01:00 UTC June 30 (22:00 ART June 29)
       '2026-06-29T17:00:00Z', // P76: June 29 at 12:00 local (CDT = UTC-5) -> 17:00 UTC (14:00 ART)
-      '2026-07-01T02:00:00Z', // P77: June 30 at 22:00 local (EDT = UTC-4) -> 02:00 UTC July 1 (23:00 ART June 30)
+      '2026-06-30T21:00:00Z', // P77: June 30 at 18:00 ART (21:00 UTC)
       '2026-06-30T23:00:00Z', // P78: June 30 at 18:00 local (CDT = UTC-5) -> 23:00 UTC (20:00 ART)
       '2026-07-01T01:00:00Z', // P79: June 30 at 19:00 local (CST = UTC-6) -> 01:00 UTC July 1 (22:00 ART June 30)
       '2026-07-01T20:00:00Z', // P80: July 1 at 16:00 local (EDT = UTC-4) -> 20:00 UTC (17:00 ART)
