@@ -119,7 +119,7 @@ router.all('/db-fix', async (req: any, res: Response): Promise<void> => {
       '2026-07-01T16:00:00Z', // P80: England vs DR Congo (13:00 ART)
       '2026-07-01T20:00:00Z', // P81: USA vs Bosnia (17:00 ART)
       '2026-07-02T00:00:00Z', // P82: Belgium vs Senegal (21:00 ART July 1)
-      '2026-07-03T01:30:00Z', // P83: Colombia vs Ghana (22:30 ART July 2)
+      '2026-07-04T01:30:00Z', // P83: Colombia vs Ghana (22:30 ART July 3)
       '2026-07-02T19:00:00Z', // P84: Spain vs Austria (16:00 ART)
       '2026-07-03T03:00:00Z', // P85: Switzerland vs Algeria (00:00 ART July 3)
       '2026-07-03T22:00:00Z', // P86: Argentina vs Cape Verde (19:00 ART)
