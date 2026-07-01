@@ -109,22 +109,22 @@ router.all('/db-fix', async (req: any, res: Response): Promise<void> => {
     });
 
     const fechas16vos = [
-      '2026-06-28T19:00:00Z', // P73
-      '2026-06-29T17:00:00Z', // P74
-      '2026-06-29T20:30:00Z', // P75
-      '2026-06-30T01:00:00Z', // P76
-      '2026-06-30T17:00:00Z', // P77
-      '2026-06-30T21:00:00Z', // P78
-      '2026-07-01T01:00:00Z', // P79
-      '2026-07-01T16:00:00Z', // P80
-      '2026-07-01T20:00:00Z', // P81
-      '2026-07-02T00:00:00Z', // P82
-      '2026-07-02T19:00:00Z', // P83
-      '2026-07-02T23:00:00Z', // P84
-      '2026-07-03T03:00:00Z', // P85
-      '2026-07-03T18:00:00Z', // P86
-      '2026-07-03T22:00:00Z', // P87
-      '2026-07-04T01:30:00Z', // P88
+      '2026-06-28T19:00:00Z', // P73: Canada vs South Africa (16:00 ART)
+      '2026-06-29T17:00:00Z', // P74: Germany vs Paraguay (14:00 ART)
+      '2026-06-29T20:30:00Z', // P75: Morocco vs Netherlands (17:30 ART)
+      '2026-06-30T01:00:00Z', // P76: Brazil vs Japan (22:00 ART June 29)
+      '2026-06-30T21:00:00Z', // P77: France vs Sweden (18:00 ART)
+      '2026-06-30T21:00:00Z', // P78: Ivory Coast vs Norway (18:00 ART)
+      '2026-07-01T01:00:00Z', // P79: Mexico vs Ecuador (22:00 ART June 30)
+      '2026-07-01T16:00:00Z', // P80: England vs DR Congo (13:00 ART)
+      '2026-07-01T20:00:00Z', // P81: USA vs Bosnia (17:00 ART)
+      '2026-07-02T00:00:00Z', // P82: Belgium vs Senegal (21:00 ART July 1)
+      '2026-07-03T01:30:00Z', // P83: Colombia vs Ghana (22:30 ART July 2)
+      '2026-07-02T19:00:00Z', // P84: Spain vs Austria (16:00 ART)
+      '2026-07-03T03:00:00Z', // P85: Switzerland vs Algeria (00:00 ART July 3)
+      '2026-07-03T22:00:00Z', // P86: Argentina vs Cape Verde (19:00 ART)
+      '2026-07-02T23:00:00Z', // P87: Croatia vs Portugal (20:00 ART)
+      '2026-07-03T18:00:00Z', // P88: Australia vs Egypt (15:00 ART)
     ];
     const fechas8vos = [
       '2026-07-04T17:00:00Z', // P89
