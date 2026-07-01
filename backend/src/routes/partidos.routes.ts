@@ -73,8 +73,8 @@ partidosAdminRouter.post('/generar', async (_req: AuthRequest, res: Response): P
       '2026-07-03T18:00:00Z', // P88: Australia vs Egypt (15:00 ART)
     ];
     const fechas8vos = [
-      '2026-07-04T17:00:00Z', // P89
-      '2026-07-04T21:00:00Z', // P90
+      '2026-07-04T21:00:00Z', // P89: Paraguay vs France (18:00 ART)
+      '2026-07-04T17:00:00Z', // P90: Canada vs Morocco (14:00 ART)
       '2026-07-05T20:00:00Z', // P91
       '2026-07-06T00:00:00Z', // P92
       '2026-07-06T19:00:00Z', // P93
